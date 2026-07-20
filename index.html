@@ -1,0 +1,887 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>BookBridge – Digital Academic Resource Platform | R. C. Technical Institute (RCTI)</title>
+  <meta name="description" content="Official RCTI Student Platform for GTU diploma textbooks, practical lab manuals & notes across all 9 departments (CE, IT, ICT, EE, ME, Civil, Printing, TMT, TPT).">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
+  <link rel="stylesheet" href="css/styles.css">
+
+  <!-- Socket.IO Client Script -->
+  <script src="/socket.io/socket.io.js"></script>
+</head>
+<body>
+
+  <!-- NAVBAR -->
+  <header class="navbar">
+    <div class="nav-brand" id="navLogo">
+      <div class="brand-icon">🌉</div>
+      <div>
+        <span class="brand-text">BookBridge</span>
+        <div style="font-size:0.68rem; color:var(--text-muted); font-weight:500; letter-spacing:0.3px;">R. C. Technical Institute (RCTI), Ahmedabad</div>
+      </div>
+    </div>
+
+    <!-- Center Nav Links -->
+    <ul class="nav-links">
+      <li class="nav-item active" id="navHome">Home</li>
+      <li class="nav-item" id="navDeptHub">Dept Hubs</li>
+      <li class="nav-item" id="navMarketplace">Marketplace</li>
+      <li class="nav-item" id="navCommunity">RCTI Community</li>
+      <li class="nav-item" id="navAIRecs">AI Recs</li>
+      <li class="nav-item" id="navDashboard">Dashboard</li>
+      <li class="nav-item" id="navAdmin" style="display:none;">🛡️ Admin Panel</li>
+      <li class="nav-item" id="navContact">Contact</li>
+      <li class="nav-item" id="navInfo">Project Info</li>
+    </ul>
+
+    <!-- Right Actions -->
+    <div class="nav-right-actions">
+      <button class="btn-theme-toggle" id="themeToggleBtn" title="Toggle Light/Dark Theme">🌓</button>
+      <button class="btn-link" id="userAuthBtn">👤 Student Login</button>
+      <button class="btn-pill" id="listBookModalBtn">Build Your List</button>
+    </div>
+  </header>
+
+  <!-- 1. HOME & HERO SECTION -->
+  <section class="hero-section" id="home">
+    <h1 class="hero-main-title">BookBridge</h1>
+    <p style="font-family:var(--font-title); font-size:1.5rem; color:var(--text-muted); margin-bottom:1.5rem; font-style:italic;">
+      "Bridge the Gap Between Books and Readers" — Official RCTI Digital Marketplace
+    </p>
+
+    <!-- CTAs -->
+    <div style="display:flex; justify-content:center; gap:1rem; margin-bottom:2.5rem; flex-wrap:wrap;">
+      <button class="btn-pill" id="ctaBrowseBtn" style="padding:0.8rem 2rem; font-size:1rem;">🔍 Browse Marketplace</button>
+      <button class="btn-pill" id="ctaSellBtn" style="padding:0.8rem 2rem; font-size:1rem; background:transparent; color:var(--text-white);">🏷️ Sell a Book</button>
+      <button class="btn-pill" id="ctaExchangeBtn" style="padding:0.8rem 2rem; font-size:1rem; background:var(--mode-exchange); border-color:var(--mode-exchange); color:#000000;">🔄 Exchange Books</button>
+    </div>
+
+    <!-- 3D Tilted Bookshelf Showcase -->
+    <div class="bookshelf-3d-wrapper">
+      <div class="bookshelf-3d-track" id="heroBookTrack">
+        <!-- Injected dynamically via app.js -->
+      </div>
+    </div>
+
+    <!-- ALL 9 RCTI DIPLOMA BRANCHES PILLS BAR -->
+    <div class="genre-pills-bar" id="genrePillsBar">
+      <div class="genre-pill active" data-genre="all">All RCTI Departments</div>
+      <div class="genre-pill" data-genre="CE">Computer Engg (CE)</div>
+      <div class="genre-pill" data-genre="IT">Information Tech (IT)</div>
+      <div class="genre-pill" data-genre="ICT">ICT</div>
+      <div class="genre-pill" data-genre="EE">Electrical (EE)</div>
+      <div class="genre-pill" data-genre="ME">Mechanical (ME)</div>
+      <div class="genre-pill" data-genre="CIVIL">Civil</div>
+      <div class="genre-pill" data-genre="PRINT">Printing Tech</div>
+      <div class="genre-pill" data-genre="TMT">Textile Mfg (TMT)</div>
+      <div class="genre-pill" data-genre="TPT">Textile Proc (TPT)</div>
+    </div>
+  </section>
+
+  <!-- 2. DEPARTMENT-WISE RESOURCE HUBS -->
+  <section class="section-wrapper" id="departmentHub">
+    <div style="text-align: center;">
+      <h2 class="section-header-title">🏛️ RCTI Department Resource Hubs</h2>
+      <p class="section-header-desc">Access GTU textbooks, lab manuals, assignments, and notes for all 9 diploma branches.</p>
+    </div>
+
+    <div style="display:flex; justify-content:center; gap:1rem; margin-bottom:2rem; flex-wrap:wrap;">
+      <select id="hubBranchSelect" class="select-dropdown" style="font-size:1rem; padding:0.75rem 1.5rem;">
+        <option value="CE" selected>💻 Computer Engineering (CE)</option>
+        <option value="IT">📱 Information Technology (IT)</option>
+        <option value="ICT">📡 ICT Department</option>
+        <option value="EE">⚡ Electrical Engineering (EE)</option>
+        <option value="ME">⚙️ Mechanical Engineering (ME)</option>
+        <option value="CIVIL">🏗️ Civil Engineering (CIVIL)</option>
+        <option value="PRINT">🖨️ Printing Technology (PRINT)</option>
+        <option value="TMT">🧵 Textile Mfg Tech (TMT)</option>
+        <option value="TPT">🎨 Textile Processing Tech (TPT)</option>
+      </select>
+
+      <select id="hubSemesterSelect" class="select-dropdown" style="font-size:1rem; padding:0.75rem 1.5rem;">
+        <option value="all">All Semesters</option>
+        <option value="1">Semester 1</option>
+        <option value="2">Semester 2</option>
+        <option value="3">Semester 3</option>
+        <option value="4">Semester 4</option>
+        <option value="5" selected>Semester 5</option>
+        <option value="6">Semester 6</option>
+      </select>
+    </div>
+
+    <div class="book-grid" id="hubResourceGrid">
+      <!-- Injected via app.js -->
+    </div>
+  </section>
+
+  <!-- 3. RCTI COLLEGE COMMUNITY PORTAL -->
+  <section class="section-wrapper" id="collegeCommunity">
+    <div style="text-align: center;">
+      <h2 class="section-header-title">📢 RCTI Campus Community Portal</h2>
+      <p class="section-header-desc">Official announcements, faculty circulars, hackathons, and placement updates.</p>
+    </div>
+
+    <div style="display:grid; grid-template-columns:repeat(auto-fit, minmax(280px, 1fr)); gap:1.75rem;">
+      <div class="about-card">
+        <div style="font-size:1.8rem; margin-bottom:0.5rem;">🎓</div>
+        <h4 style="font-family:var(--font-title); font-size:1.2rem; margin-bottom:0.4rem;">GTU Midsem Exam Time Table</h4>
+        <p style="font-size:0.85rem; color:var(--text-muted);">Official 5th semester diploma midsem schedule for CE, IT, EE, ME & Civil branches.</p>
+        <div style="font-size:0.75rem; color:var(--accent-blue); margin-top:0.75rem;">Posted by RCTI Exam Dept</div>
+      </div>
+
+      <div class="about-card">
+        <div style="font-size:1.8rem; margin-bottom:0.5rem;">💻</div>
+        <h4 style="font-family:var(--font-title); font-size:1.2rem; margin-bottom:0.4rem;">Smart Gujarat Hackathon 2026</h4>
+        <p style="font-size:0.85rem; color:var(--text-muted);">Computer & IT diploma students project registration now open.</p>
+        <div style="font-size:0.75rem; color:var(--accent-blue); margin-top:0.75rem;">Posted by Prof. T. B. Mehta</div>
+      </div>
+
+      <div class="about-card">
+        <div style="font-size:1.8rem; margin-bottom:0.5rem;">🚀</div>
+        <h4 style="font-family:var(--font-title); font-size:1.2rem; margin-bottom:0.4rem;">Campus Placement Drive</h4>
+        <p style="font-size:0.85rem; color:var(--text-muted);">TATA Consultancy Services & L&T placement drive for 6th semester students.</p>
+        <div style="font-size:0.75rem; color:var(--accent-blue); margin-top:0.75rem;">Posted by RCTI TPO Cell</div>
+      </div>
+    </div>
+  </section>
+
+  <!-- 4. MARKETPLACE SECTION -->
+  <main class="main-container" id="marketplace">
+    <div class="catalog-header">
+      <h2 class="catalog-title">Campus Textbook Marketplace</h2>
+
+      <div class="filter-group">
+        <input type="text" id="searchInput" class="search-input-field" placeholder="Search GTU code, subject, lab manual...">
+
+        <select id="categorySelect" class="select-dropdown">
+          <option value="all">Physical & Digital</option>
+          <option value="physical">📦 Physical Resources</option>
+          <option value="digital">📄 Digital Resources (PDF/Zip)</option>
+        </select>
+
+        <select id="resourceTypeSelect" class="select-dropdown">
+          <option value="all">All Resource Types</option>
+          <option value="textbook">📖 GTU Textbooks</option>
+          <option value="lab_manual">📋 GTU Lab Manuals</option>
+          <option value="question_bank">📑 Question Banks</option>
+          <option value="project_report">📂 Project Reports</option>
+        </select>
+
+        <select id="conditionSelect" class="select-dropdown">
+          <option value="all">All Conditions</option>
+          <option value="Brand New">🌟 Brand New</option>
+          <option value="Like New">✨ Like New</option>
+          <option value="Excellent">👍 Excellent</option>
+          <option value="Good">👌 Good</option>
+          <option value="Fair">🤏 Fair</option>
+        </select>
+
+        <select id="semesterSelect" class="select-dropdown">
+          <option value="all">All Semesters</option>
+          <option value="1">Sem 1</option>
+          <option value="2">Sem 2</option>
+          <option value="3">Sem 3</option>
+          <option value="4">Sem 4</option>
+          <option value="5">Sem 5</option>
+          <option value="6">Sem 6</option>
+        </select>
+
+        <select id="branchSelect" class="select-dropdown">
+          <option value="all">All 9 Branches</option>
+          <option value="CE">CE</option>
+          <option value="IT">IT</option>
+          <option value="ICT">ICT</option>
+          <option value="EE">EE</option>
+          <option value="ME">ME</option>
+          <option value="CIVIL">CIVIL</option>
+          <option value="PRINT">PRINT</option>
+          <option value="TMT">TMT</option>
+          <option value="TPT">TPT</option>
+        </select>
+
+        <select id="modeSelect" class="select-dropdown">
+          <option value="all">All 4 Modules</option>
+          <option value="exchange">🔄 Swaps</option>
+          <option value="buy">🛒 Buy / Sell</option>
+          <option value="donate">🎁 Free Gifts</option>
+        </select>
+      </div>
+    </div>
+
+    <!-- Book Grid Container -->
+    <div class="book-grid" id="bookGrid">
+      <!-- Skeleton Shimmer Placeholders before data load -->
+      <div class="book-card">
+        <div class="skeleton-box" style="height:250px;"></div>
+        <div class="card-body">
+          <div class="skeleton-box" style="height:14px; width:40%; margin-bottom:10px;"></div>
+          <div class="skeleton-box" style="height:20px; width:85%; margin-bottom:10px;"></div>
+          <div class="skeleton-box" style="height:14px; width:60%;"></div>
+        </div>
+      </div>
+      <div class="book-card">
+        <div class="skeleton-box" style="height:250px;"></div>
+        <div class="card-body">
+          <div class="skeleton-box" style="height:14px; width:40%; margin-bottom:10px;"></div>
+          <div class="skeleton-box" style="height:20px; width:85%; margin-bottom:10px;"></div>
+          <div class="skeleton-box" style="height:14px; width:60%;"></div>
+        </div>
+      </div>
+      <div class="book-card">
+        <div class="skeleton-box" style="height:250px;"></div>
+        <div class="card-body">
+          <div class="skeleton-box" style="height:14px; width:40%; margin-bottom:10px;"></div>
+          <div class="skeleton-box" style="height:20px; width:85%; margin-bottom:10px;"></div>
+          <div class="skeleton-box" style="height:14px; width:60%;"></div>
+        </div>
+      </div>
+    </div>
+  </main>
+
+  <!-- 5. AI RECOMMENDATIONS -->
+  <section class="section-wrapper" id="aiRecommendations">
+    <div style="text-align: center;">
+      <h2 class="section-header-title">🤖 AI Book Recommendations</h2>
+      <p class="section-header-desc">Smart AI suggestions tailored to your RCTI branch & current GTU semester.</p>
+    </div>
+
+    <div class="book-grid" id="aiRecommendationsGrid">
+      <!-- Injected dynamically via app.js -->
+    </div>
+  </section>
+
+  <!-- 6. USER DASHBOARD -->
+  <section class="section-wrapper" id="dashboard">
+    <h2 class="section-header-title">Student & Faculty Hub</h2>
+    <p class="section-header-desc">Manage your profile, physical/digital uploads, wishlist, and transactions.</p>
+
+    <div style="display:grid; grid-template-columns:240px 1fr; gap:2rem;">
+      <div style="background:var(--bg-card); border:1px solid var(--border-pill); border-radius:var(--radius-md); padding:1.25rem; height:fit-content;">
+        <ul style="list-style:none; display:flex; flex-direction:column; gap:0.35rem;" id="profileSidebarNav">
+          <li class="dash-tab active" data-dash-tab="listings">📚 My Uploads</li>
+          <li class="dash-tab" data-dash-tab="profile">👤 My Profile</li>
+          <li class="dash-tab" data-dash-tab="wishlist">❤️ Wishlist</li>
+          <li class="dash-tab" data-dash-tab="purchases">🛒 My Purchases</li>
+          <li class="dash-tab" data-dash-tab="sales">💰 My Sales</li>
+          <li class="dash-tab" data-dash-tab="exchanges">🔄 My Exchanges</li>
+          <li class="dash-tab" data-dash-tab="donations">🎁 My Donations</li>
+          <li class="dash-tab" data-dash-tab="library">📂 Digital Library</li>
+          <li class="dash-tab" data-dash-tab="messages">💬 Messages</li>
+          <li class="dash-tab" data-dash-tab="notifications">🔔 Notifications</li>
+          <li class="dash-tab" data-dash-tab="reviews">⭐ Reviews & Ratings</li>
+          <li class="dash-tab" data-dash-tab="settings">⚙️ Settings</li>
+          <li class="dash-tab" id="sidebarLogout" style="color:#f43f5e; cursor:pointer;">🚪 Logout</li>
+        </ul>
+      </div>
+
+      <div id="dashTabContent" style="background:var(--bg-card); border:1px solid var(--border-pill); padding:2rem; border-radius:var(--radius-md);">
+        <!-- Content rendered dynamically via app.js -->
+      </div>
+    </div>
+  </section>
+
+  <!-- 7. ADMIN PANEL SECTION -->
+  <section class="section-wrapper" id="adminPanel" style="display:none;">
+    <h2 class="section-header-title">🛡️ Admin Moderation & Analytics Panel</h2>
+    <p class="section-header-desc">Platform metrics, user management, and listing moderation.</p>
+
+    <div style="display:grid; grid-template-columns:repeat(auto-fit, minmax(200px, 1fr)); gap:1.5rem; margin-bottom:2.5rem;" id="adminStatsGrid">
+      <!-- Injected via app.js -->
+    </div>
+
+    <div style="background:var(--bg-card); border:1px solid var(--border-pill); border-radius:var(--radius-md); padding:1.75rem; margin-bottom:2rem;">
+      <h3 style="font-family:var(--font-title); font-size:1.3rem; margin-bottom:1rem;">Registered Student & Faculty Users</h3>
+      <div id="adminUserTableContainer"></div>
+    </div>
+  </section>
+
+  <!-- 8. CONTACT SECTION -->
+  <section class="section-wrapper" id="contact">
+    <div class="contact-grid">
+      <div>
+        <h2 class="section-header-title">Get In Touch</h2>
+        <p style="color:var(--text-muted); margin-bottom:2rem;">
+          Have questions or need assistance with textbook exchanges at RCTI? Reach out to our team!
+        </p>
+
+        <div style="display:flex; flex-direction:column; gap:1.25rem;">
+          <div style="display:flex; gap:1rem; align-items:center;">
+            <div style="width:40px; height:40px; border-radius:50%; background:var(--bg-pill); display:flex; align-items:center; justify-content:center; font-size:1.1rem;">📍</div>
+            <div>
+              <div style="font-weight:700; font-size:0.95rem;">Campus Address</div>
+              <div style="font-size:0.85rem; color:var(--text-muted);">R. C. Technical Institute, Opp. High Court, Sola, Ahmedabad, Gujarat 380060</div>
+            </div>
+          </div>
+
+          <div style="display:flex; gap:1rem; align-items:center;">
+            <div style="width:40px; height:40px; border-radius:50%; background:var(--bg-pill); display:flex; align-items:center; justify-content:center; font-size:1.1rem;">✉️</div>
+            <div>
+              <div style="font-weight:700; font-size:0.95rem;">Email Support</div>
+              <div style="font-size:0.85rem; color:var(--text-muted);">support@bookbridge.rcti.ac.in</div>
+            </div>
+          </div>
+
+          <div style="display:flex; gap:1rem; align-items:center;">
+            <div style="width:40px; height:40px; border-radius:50%; background:var(--bg-pill); display:flex; align-items:center; justify-content:center; font-size:1.1rem;">📞</div>
+            <div>
+              <div style="font-weight:700; font-size:0.95rem;">Student Helpline</div>
+              <div style="font-size:0.85rem; color:var(--text-muted);">+91 98765 43210</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div style="background:var(--bg-card); border:1px solid var(--border-pill); padding:2rem; border-radius:var(--radius-lg);">
+        <h3 style="font-family:var(--font-title); font-size:1.4rem; margin-bottom:1.25rem;">Send a Message</h3>
+        <form id="contactForm">
+          <div class="form-group">
+            <label class="form-label">Your Name *</label>
+            <input type="text" id="contactName" class="form-input" placeholder="Ved Patel" required>
+          </div>
+          <div class="form-group">
+            <label class="form-label">Email Address *</label>
+            <input type="email" id="contactEmail" class="form-input" placeholder="ved@rcti.ac.in" required>
+          </div>
+          <div class="form-group">
+            <label class="form-label">Message *</label>
+            <textarea id="contactMessage" class="form-textarea" rows="3" placeholder="Enter your inquiry..." required></textarea>
+          </div>
+          <button type="submit" class="btn-pill" style="width:100%; padding:0.8rem;">Send Message</button>
+        </form>
+      </div>
+    </div>
+  </section>
+
+  <!-- MODAL: RICH CONTACT SELLER POPUP MODAL -->
+  <div class="modal-overlay" id="sellerContactModal">
+    <div class="modal-card" style="max-width:480px; text-align:center;">
+      <button class="modal-close" id="closeSellerContactModal">&times;</button>
+      
+      <div style="width:70px; height:70px; border-radius:50%; background:var(--bg-pill); border:2px solid var(--accent-blue); display:flex; align-items:center; justify-content:center; font-size:2rem; margin:0 auto 0.75rem auto;">
+        👤
+      </div>
+      <h3 id="sellerModalName" style="font-family:var(--font-title); font-size:1.5rem; margin-bottom:0.25rem;">Student Seller</h3>
+      <div id="sellerModalDept" style="font-size:0.85rem; color:var(--text-muted); margin-bottom:1.25rem;">
+        Computer Engineering • GTU Sem 5 • RCTI Ahmedabad
+      </div>
+
+      <div style="background:var(--bg-dark); border:1px solid var(--border-pill); border-radius:var(--radius-md); padding:1rem; text-align:left; margin-bottom:1.5rem; font-size:0.88rem; line-height:2;">
+        <div><strong>📱 Phone:</strong> <span id="sellerModalPhone">+919876543210</span></div>
+        <div><strong>✉️ Email:</strong> <span id="sellerModalEmail">student@rcti.ac.in</span></div>
+        <div><strong>📍 College:</strong> R. C. Technical Institute, Sola, Ahmedabad</div>
+      </div>
+
+      <div style="display:grid; grid-template-columns:1fr 1fr; gap:0.75rem;">
+        <a id="sellerCallBtn" href="tel:+919876543210" class="btn-pill" style="background:#10b981; color:#fff; border-color:#10b981; text-align:center; display:block;">
+          📞 Call Seller
+        </a>
+        <button id="sellerCopyBtn" type="button" class="btn-pill" style="background:var(--bg-pill); color:var(--text-white);">
+          📋 Copy Number
+        </button>
+        <button id="sellerMessageBtn" type="button" class="btn-pill" style="background:var(--accent-blue); color:#fff; border-color:var(--accent-blue); grid-column:span 2;">
+          💬 Send Live Message
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- MODAL: 4-STEP MULTI-RESOURCE UPLOAD WIZARD MODAL -->
+  <div class="modal-overlay" id="multiStepUploadModal">
+    <div class="modal-card" style="max-width:700px;">
+      <button class="modal-close" id="closeUploadWizardModal">&times;</button>
+      <h2 style="font-family: var(--font-title); font-size: 1.8rem; margin-bottom: 0.25rem;">Upload Resource Wizard</h2>
+      <p style="color: var(--text-muted); font-size: 0.85rem; margin-bottom: 1.5rem;">Follow 4 simple steps to list physical books or digital PDF lab manuals.</p>
+
+      <div style="display:flex; justify-content:space-between; margin-bottom:1.5rem; position:relative; font-size:0.8rem; font-weight:700;">
+        <span id="stepInd1" style="color:var(--text-white);">1. Category</span>
+        <span id="stepInd2" style="color:var(--text-muted);">2. Listing Type</span>
+        <span id="stepInd3" style="color:var(--text-muted);">3. Resource Type</span>
+        <span id="stepInd4" style="color:var(--text-muted);">4. Details</span>
+      </div>
+
+      <form id="wizardForm">
+        <div id="wizardStep1">
+          <h4 style="font-size:1.1rem; margin-bottom:1rem;">Step 1: Select Resource Category</h4>
+          <div style="display:grid; grid-template-columns:1fr 1fr; gap:1rem; margin-bottom:1.5rem;">
+            <div class="wizard-choice-box active" data-choice-category="physical" style="background:var(--bg-dark); border:2px solid var(--text-white); padding:1.5rem; border-radius:var(--radius-md); text-align:center; cursor:pointer;">
+              <div style="font-size:2.5rem; margin-bottom:0.5rem;">📦</div>
+              <h5 style="font-size:1.1rem; font-weight:700;">Physical Resource</h5>
+              <p style="font-size:0.8rem; color:var(--text-muted);">Printed Books, Practical Workbooks, Hardcopy Notes</p>
+            </div>
+            <div class="wizard-choice-box" data-choice-category="digital" style="background:var(--bg-dark); border:2px solid var(--border-pill); padding:1.5rem; border-radius:var(--radius-md); text-align:center; cursor:pointer;">
+              <div style="font-size:2.5rem; margin-bottom:0.5rem;">📄</div>
+              <h5 style="font-size:1.1rem; font-weight:700;">Digital Resource</h5>
+              <p style="font-size:0.8rem; color:var(--text-muted);">PDF Books, Notes PDF, Lab Manual PDF, PPT, Source Code</p>
+            </div>
+          </div>
+          <button type="button" class="btn-pill" id="btnStep1Next" style="width:100%; padding:0.8rem;">Next: Select Listing Type ➔</button>
+        </div>
+
+        <div id="wizardStep2" style="display:none;">
+          <h4 style="font-size:1.1rem; margin-bottom:1rem;">Step 2: Select Listing Type</h4>
+          <div style="display:grid; grid-template-columns:1fr 1fr; gap:1rem; margin-bottom:1.5rem;">
+            <div class="wizard-choice-mode active" data-choice-mode="exchange" style="background:var(--bg-dark); border:2px solid var(--text-white); padding:1.2rem; border-radius:var(--radius-md); text-align:center; cursor:pointer;">
+              <div style="font-size:2rem;">🔄</div>
+              <h5 style="font-size:1rem; font-weight:700;">Exchange Trade</h5>
+            </div>
+            <div class="wizard-choice-mode" data-choice-mode="sell" style="background:var(--bg-dark); border:2px solid var(--border-pill); padding:1.2rem; border-radius:var(--radius-md); text-align:center; cursor:pointer;">
+              <div style="font-size:2rem;">🏷️</div>
+              <h5 style="font-size:1rem; font-weight:700;">Sell for Price (₹)</h5>
+            </div>
+            <div class="wizard-choice-mode" data-choice-mode="donate" style="background:var(--bg-dark); border:2px solid var(--border-pill); padding:1.2rem; border-radius:var(--radius-md); text-align:center; cursor:pointer;">
+              <div style="font-size:2rem;">🎁</div>
+              <h5 style="font-size:1rem; font-weight:700;">Free Donation</h5>
+            </div>
+            <div class="wizard-choice-mode" data-choice-mode="buy" style="background:var(--bg-dark); border:2px solid var(--border-pill); padding:1.2rem; border-radius:var(--radius-md); text-align:center; cursor:pointer;">
+              <div style="font-size:2rem;">🛒</div>
+              <h5 style="font-size:1rem; font-weight:700;">Buy Request</h5>
+            </div>
+          </div>
+          <div style="display:flex; gap:1rem;">
+            <button type="button" class="btn-pill" id="btnStep2Back" style="flex:1; background:transparent; color:var(--text-white);">⬅️ Back</button>
+            <button type="button" class="btn-pill" id="btnStep2Next" style="flex:1;">Next: Select Resource Type ➔</button>
+          </div>
+        </div>
+
+        <div id="wizardStep3" style="display:none;">
+          <h4 style="font-size:1.1rem; margin-bottom:1rem;">Step 3: Select Resource Type</h4>
+          <div class="form-group" style="margin-bottom:1.5rem;">
+            <select id="wizardResTypeSelect" class="form-select" style="font-size:1rem; padding:0.85rem;">
+            </select>
+          </div>
+          <div style="display:flex; gap:1rem;">
+            <button type="button" class="btn-pill" id="btnStep3Back" style="flex:1; background:transparent; color:var(--text-white);">⬅️ Back</button>
+            <button type="button" class="btn-pill" id="btnStep3Next" style="flex:1;">Next: Enter Resource Details ➔</button>
+          </div>
+        </div>
+
+        <div id="wizardStep4" style="display:none;">
+          <h4 style="font-size:1.1rem; margin-bottom:1rem;">Step 4: Resource Information</h4>
+
+          <div class="form-group">
+            <label class="form-label">Resource Title *</label>
+            <input type="text" id="wizTitle" class="form-input" placeholder="e.g. Data Structures in C (GTU: 3330704)" required>
+          </div>
+
+          <div style="display:grid; grid-template-columns:1fr 1fr; gap:1rem;">
+            <div class="form-group">
+              <label class="form-label">Subject Name *</label>
+              <input type="text" id="wizSubject" class="form-input" placeholder="Data Structures" required>
+            </div>
+            <div class="form-group">
+              <label class="form-label">GTU Subject Code</label>
+              <input type="text" id="wizGtuCode" class="form-input" placeholder="3330704">
+            </div>
+          </div>
+
+          <div style="display:grid; grid-template-columns:1fr 1fr 1fr; gap:0.75rem;">
+            <div class="form-group">
+              <label class="form-label">Department</label>
+              <select id="wizBranch" class="form-select">
+                <option value="CE">CE</option>
+                <option value="IT">IT</option>
+                <option value="ICT">ICT</option>
+                <option value="EE">EE</option>
+                <option value="ME">ME</option>
+                <option value="CIVIL">CIVIL</option>
+                <option value="PRINT">PRINT</option>
+                <option value="TMT">TMT</option>
+                <option value="TPT">TPT</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label class="form-label">Semester</label>
+              <select id="wizSemester" class="form-select">
+                <option value="1">Sem 1</option>
+                <option value="2">Sem 2</option>
+                <option value="3">Sem 3</option>
+                <option value="4">Sem 4</option>
+                <option value="5" selected>Sem 5</option>
+                <option value="6">Sem 6</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label class="form-label">Condition</label>
+              <select id="wizCondition" class="form-select">
+                <option value="Brand New">🌟 Brand New</option>
+                <option value="Like New" selected>✨ Like New</option>
+                <option value="Excellent">👍 Excellent</option>
+                <option value="Good">👌 Good</option>
+                <option value="Fair">🤏 Fair</option>
+              </select>
+            </div>
+          </div>
+
+          <div style="display:grid; grid-template-columns:1fr 1fr; gap:1rem;">
+            <div class="form-group">
+              <label class="form-label">Author Name *</label>
+              <input type="text" id="wizAuthor" class="form-input" placeholder="Atul Prakashan" required>
+            </div>
+            <div class="form-group">
+              <label class="form-label">Price (₹) or Swap Note</label>
+              <input type="text" id="wizPriceOrSwap" class="form-input" placeholder="150 or Swap for DBMS">
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label class="form-label">Description / Condition Notes</label>
+            <textarea id="wizDescription" class="form-textarea" rows="2" placeholder="Resource details, meeting location at RCTI..."></textarea>
+          </div>
+
+          <div style="display:flex; gap:1rem;">
+            <button type="button" class="btn-pill" id="btnStep4Back" style="flex:1; background:transparent; color:var(--text-white);">⬅️ Back</button>
+            <button type="submit" class="btn-pill" style="flex:1;">✨ Publish to BookBridge</button>
+          </div>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- MODAL: EDIT RESOURCE MODAL -->
+  <div class="modal-overlay" id="editResourceModal">
+    <div class="modal-card">
+      <button class="modal-close" id="closeEditResourceModal">&times;</button>
+      <h2 style="font-family: var(--font-title); font-size: 1.6rem; margin-bottom: 0.35rem;">Edit Resource Listing</h2>
+      <p style="color: var(--text-muted); font-size: 0.85rem; margin-bottom: 1.25rem;">Updates sync instantly to public marketplace.</p>
+
+      <form id="editResourceForm">
+        <input type="hidden" id="editBookId">
+        <div class="form-group">
+          <label class="form-label">Resource Title</label>
+          <input type="text" id="editTitle" class="form-input" required>
+        </div>
+        <div style="display:grid; grid-template-columns:1fr 1fr; gap:1rem;">
+          <div class="form-group">
+            <label class="form-label">Condition</label>
+            <select id="editCondition" class="form-select">
+              <option value="Brand New">🌟 Brand New</option>
+              <option value="Like New">✨ Like New</option>
+              <option value="Excellent">👍 Excellent</option>
+              <option value="Good">👌 Good</option>
+              <option value="Fair">🤏 Fair</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label class="form-label">Price (₹)</label>
+            <input type="number" id="editPrice" class="form-input">
+          </div>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Description</label>
+          <textarea id="editDescription" class="form-textarea" rows="2"></textarea>
+        </div>
+        <button type="submit" class="btn-pill" style="width:100%; padding:0.85rem;">Save Changes</button>
+      </form>
+    </div>
+  </div>
+
+  <!-- MODAL: PDF PREVIEW MODAL -->
+  <div class="modal-overlay" id="pdfModal">
+    <div class="modal-card" style="max-width:700px;">
+      <button class="modal-close" id="closePdfModal">&times;</button>
+      <h2 id="pdfModalTitle" style="font-family:var(--font-title); font-size:1.5rem; margin-bottom:0.25rem;">GTU Lab Manual Preview</h2>
+      <p style="color:var(--text-muted); font-size:0.85rem; margin-bottom:1.25rem;">Official practical manual from RCTI Department Portal.</p>
+
+      <div style="background:var(--bg-dark); border:1px solid var(--border-subtle); padding:2rem; border-radius:var(--radius-md); text-align:center; margin-bottom:1.25rem;">
+        <div style="font-size:3rem; margin-bottom:0.5rem;">📋</div>
+        <h4 id="pdfFileName" style="font-weight:700; margin-bottom:0.5rem; font-size:1.1rem;">GTU Practical Manual.pdf</h4>
+        <p style="font-size:0.85rem; color:var(--text-muted);">Verified GTU practical programs, circuit diagrams, and procedure steps.</p>
+      </div>
+
+      <button class="btn-pill" id="btnDownloadPdfConfirm" style="width:100%; padding:0.85rem; font-size:1rem;">
+        📥 Download Practical Lab Manual PDF
+      </button>
+    </div>
+  </div>
+
+  <!-- MODAL: QR CODE SHARE MODAL -->
+  <div class="modal-overlay" id="qrModal">
+    <div class="modal-card" style="max-width:420px; text-align:center;">
+      <button class="modal-close" id="closeQrModal">&times;</button>
+      <h2 style="font-family:var(--font-title); font-size:1.5rem; margin-bottom:0.25rem;">Share Listing QR Code</h2>
+      <p id="qrModalBookTitle" style="color:var(--text-muted); font-size:0.85rem; margin-bottom:1.25rem;"></p>
+
+      <div style="background:#ffffff; padding:1.5rem; border-radius:var(--radius-md); display:inline-block; margin-bottom:1rem;">
+        <div style="font-size:6rem; color:#000000; line-height:1;">📱</div>
+      </div>
+      <p style="font-size:0.8rem; color:var(--text-muted);">Scan QR code with any smartphone to open textbook listing link directly.</p>
+    </div>
+  </div>
+
+  <!-- MODAL: LIVE CHAT MESSAGING -->
+  <div class="modal-overlay" id="chatModal">
+    <div class="modal-card">
+      <button class="modal-close" id="closeChatModal">&times;</button>
+      <h2 id="chatHeaderTitle" style="font-family: var(--font-title); font-size: 1.5rem; margin-bottom: 0.25rem;">Buyer-Seller Live Chat</h2>
+      <p id="chatHeaderSub" style="color: var(--text-muted); font-size: 0.85rem; margin-bottom: 1rem;"></p>
+
+      <div id="chatMessagesContainer" style="height: 250px; overflow-y: auto; background: var(--bg-dark); border: 1px solid var(--border-subtle); border-radius: var(--radius-md); padding: 1rem; margin-bottom: 1rem; display: flex; flex-direction: column; gap: 0.75rem;"></div>
+
+      <form id="chatForm" style="display: flex; gap: 0.5rem;">
+        <input type="text" id="chatInput" class="form-input" placeholder="Type message..." required style="flex:1;">
+        <button type="submit" class="btn-pill" style="padding:0.6rem 1.25rem;">Send</button>
+      </form>
+    </div>
+  </div>
+
+  <!-- MODAL: SELLER REVIEW -->
+  <div class="modal-overlay" id="reviewModal">
+    <div class="modal-card">
+      <button class="modal-close" id="closeReviewModal">&times;</button>
+      <h2 style="font-family: var(--font-title); font-size: 1.6rem; margin-bottom: 0.35rem;">Rate Seller Experience</h2>
+      <p id="reviewSubtitle" style="color: var(--text-muted); font-size: 0.9rem; margin-bottom: 1.25rem;"></p>
+
+      <form id="reviewForm">
+        <input type="hidden" id="reviewSellerEmail">
+        <div class="form-group">
+          <label class="form-label">Rating (1 to 5 Stars)</label>
+          <select id="reviewRating" class="form-select">
+            <option value="5" selected>⭐⭐⭐⭐⭐ (5/5) Excellent</option>
+            <option value="4">⭐⭐⭐⭐ (4/5) Very Good</option>
+            <option value="3">⭐⭐⭐ (3/5) Average</option>
+            <option value="2">⭐⭐ (2/5) Poor</option>
+            <option value="1">⭐ (1/5) Terrible</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Review Comment</label>
+          <textarea id="reviewComment" class="form-textarea" rows="3" placeholder="Write feedback about the seller..." required></textarea>
+        </div>
+        <button type="submit" class="btn-pill" style="width: 100%; padding: 0.85rem;">Submit Review</button>
+      </form>
+    </div>
+  </div>
+
+  <!-- MODAL: PROJECT INFO & GROUP 05 CREDITS -->
+  <div class="modal-overlay" id="projectInfoModal">
+    <div class="modal-card" style="max-width: 750px;">
+      <button class="modal-close" id="closeProjectInfoModal">&times;</button>
+
+      <div style="text-align: center; border-bottom: 1px solid var(--border-subtle); padding-bottom: 1rem; margin-bottom: 1.5rem;">
+        <h2 style="font-family: var(--font-title); font-size: 2.2rem; margin-bottom: 0.25rem;">BookBridge</h2>
+        <p style="color: var(--text-muted); font-size: 1rem; font-style: italic;">"Bridge the Gap Between Books and Readers"</p>
+        <div style="font-size: 0.82rem; color: var(--accent-blue); font-weight: 600; margin-top: 0.5rem; text-transform: uppercase;">
+          Department of Computer Engineering | R. C. Technical Institute, Ahmedabad
+        </div>
+      </div>
+
+      <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem; margin-bottom: 1.5rem;">
+        <div style="background: var(--bg-card); padding: 1.25rem; border-radius: var(--radius-md); border: 1px solid var(--border-pill);">
+          <h3 style="font-family: var(--font-title); font-size: 1.15rem; margin-bottom: 0.75rem; color: var(--text-white);">
+            👥 Group 05 Team Members
+          </h3>
+          <ul style="list-style: none; font-size: 0.88rem; line-height: 1.8; color: var(--text-muted);">
+            <li>• <strong>Ved V. Patel</strong> (246400307192)</li>
+            <li>• <strong>Keval A. Prajapati</strong> (246400307210)</li>
+            <li>• <strong>Ved J. Prajapati</strong> (246400307218)</li>
+            <li>• <strong>Vaibhav R. Pithadiya</strong> (246400307201)</li>
+            <li>• <strong>Jayshil L. Rabari</strong> (246400307223)</li>
+          </ul>
+          <div style="margin-top: 1rem; padding-top: 0.75rem; border-top: 1px solid var(--border-subtle); font-size: 0.88rem;">
+            <strong>Project Guide:</strong> Prof. T. B. Mehta
+          </div>
+        </div>
+
+        <div style="background: var(--bg-card); padding: 1.25rem; border-radius: var(--radius-md); border: 1px solid var(--border-pill);">
+          <h3 style="font-family: var(--font-title); font-size: 1.15rem; margin-bottom: 0.75rem; color: var(--text-white);">
+            ⚡ 4 Core Modules
+          </h3>
+          <ul style="list-style: none; font-size: 0.88rem; line-height: 1.8; color: var(--text-muted);">
+            <li>🛒 <strong>Buy Module</strong>: Transparent used book pricing</li>
+            <li>🏷️ <strong>Sell Module</strong>: Student textbook resale</li>
+            <li>🔄 <strong>Exchange Module</strong>: Zero-cost book swaps</li>
+            <li>🎁 <strong>Donate Module</strong>: Free book recycling</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- MODAL: AUTH MODAL -->
+  <div class="modal-overlay" id="authModal">
+    <div class="modal-card">
+      <button class="modal-close" id="closeAuthModal">&times;</button>
+      
+      <div style="display: flex; gap: 1.5rem; border-bottom: 1px solid var(--border-subtle); margin-bottom: 1.5rem; padding-bottom: 0.5rem;">
+        <h2 id="tabLogin" style="font-family: var(--font-title); font-size: 1.5rem; cursor: pointer; color: var(--text-white);">Sign In</h2>
+        <h2 id="tabRegister" style="font-family: var(--font-title); font-size: 1.5rem; cursor: pointer; color: var(--text-muted);">Register RCTI Account</h2>
+      </div>
+
+      <form id="loginForm">
+        <div class="form-group">
+          <label class="form-label">Email Address *</label>
+          <input type="email" id="loginEmail" class="form-input" placeholder="ved.ce@rcti.ac.in or admin@rcti.ac.in" required>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Password *</label>
+          <input type="password" id="loginPassword" class="form-input" placeholder="••••••••" required>
+        </div>
+        <button type="submit" class="btn-pill" style="width: 100%; padding: 0.85rem; font-size: 1rem; margin-top: 0.5rem;">
+          Sign In to BookBridge
+        </button>
+      </form>
+
+      <form id="registerForm" style="display: none;">
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
+          <div class="form-group">
+            <label class="form-label">Full Name *</label>
+            <input type="text" id="regName" class="form-input" placeholder="Ved V. Patel" required>
+          </div>
+          <div class="form-group">
+            <label class="form-label">GTU Enrollment No *</label>
+            <input type="text" id="regEnrollment" class="form-input" placeholder="246400307192" required>
+          </div>
+        </div>
+
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
+          <div class="form-group">
+            <label class="form-label">Account Role *</label>
+            <select id="regRole" class="form-select">
+              <option value="student" selected>🎓 Student</option>
+              <option value="faculty">👨‍🏫 Faculty</option>
+              <option value="alumni">🎓 Alumni</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label class="form-label">RCTI Department *</label>
+            <select id="regBranch" class="form-select">
+              <option value="CE">Computer Engg (CE)</option>
+              <option value="IT">Information Tech (IT)</option>
+              <option value="ICT">ICT</option>
+              <option value="EE">Electrical (EE)</option>
+              <option value="ME">Mechanical (ME)</option>
+              <option value="CIVIL">Civil</option>
+              <option value="PRINT">Printing Tech</option>
+              <option value="TMT">Textile Mfg (TMT)</option>
+              <option value="TPT">Textile Proc (TPT)</option>
+            </select>
+          </div>
+        </div>
+
+        <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 0.75rem;">
+          <div class="form-group">
+            <label class="form-label">Semester</label>
+            <select id="regSemester" class="form-select">
+              <option value="1">Sem 1</option>
+              <option value="2">Sem 2</option>
+              <option value="3">Sem 3</option>
+              <option value="4">Sem 4</option>
+              <option value="5" selected>Sem 5</option>
+              <option value="6">Sem 6</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label class="form-label">Division</label>
+            <select id="regDivision" class="form-select">
+              <option value="Div A">Div A</option>
+              <option value="Div B">Div B</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label class="form-label">Academic Year</label>
+            <input type="text" id="regAcademicYear" class="form-input" value="2025-2026">
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label">Email Address *</label>
+          <input type="email" id="regEmail" class="form-input" placeholder="ved.ce@rcti.ac.in" required>
+        </div>
+        <div class="form-group">
+          <label class="form-label">WhatsApp Number *</label>
+          <input type="text" id="regWhatsapp" class="form-input" placeholder="+919876543210" required>
+        </div>
+        <button type="submit" class="btn-pill" style="width: 100%; padding: 0.85rem; font-size: 1rem; margin-top: 0.5rem;">
+          Create RCTI Account
+        </button>
+      </form>
+    </div>
+  </div>
+
+  <!-- MODAL: BOOK ACTION -->
+  <div class="modal-overlay" id="actionModal">
+    <div class="modal-card">
+      <button class="modal-close" id="closeActionModal">&times;</button>
+      <h2 id="actionTitle" style="font-family: var(--font-title); font-size: 1.6rem; margin-bottom: 0.35rem;">Resource Details</h2>
+      <p id="actionSubtitle" style="color: var(--text-muted); font-size: 0.9rem; margin-bottom: 1.25rem;"></p>
+
+      <form id="actionForm">
+        <input type="hidden" id="actionBookId">
+        <div class="form-group">
+          <label class="form-label">Your Student Name *</label>
+          <input type="text" id="actionName" class="form-input" placeholder="Ved Patel" required>
+        </div>
+        <div class="form-group">
+          <label class="form-label" id="actionDetailsLabel">Swap Proposal / Note</label>
+          <textarea id="actionNote" class="form-textarea" rows="2" placeholder="Enter swap details or meeting note..."></textarea>
+        </div>
+
+        <div style="display: flex; gap: 0.75rem; margin-top: 1rem;">
+          <button type="button" class="btn-pill" id="btnLiveChatDirect" style="background: var(--accent-blue); color: #ffffff; border-color: var(--accent-blue); flex: 1;">
+            💬 Live Chat
+          </button>
+          <button type="button" class="btn-pill" id="btnWhatsappDirect" style="background: #25d366; color: #ffffff; border-color: #25d366; flex: 1;">
+            <i class="fa-brands fa-whatsapp"></i> WhatsApp
+          </button>
+          <button type="submit" class="btn-pill" id="actionSubmitBtn" style="flex: 1;">
+            Confirm Action
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- TOAST NOTIFICATIONS -->
+  <div id="toastContainer" style="position: fixed; bottom: 2rem; right: 2rem; z-index: 9999; display: flex; flex-direction: column; gap: 0.5rem;"></div>
+
+  <!-- FOOTER -->
+  <footer class="footer" id="footer">
+    <div style="max-width:1200px; margin:0 auto; display:grid; grid-template-columns:repeat(auto-fit, minmax(200px, 1fr)); gap:2.5rem; text-align:left; margin-bottom:3rem;">
+      <div>
+        <div style="font-family:var(--font-title); font-size:1.5rem; font-weight:700; color:var(--text-white); margin-bottom:0.75rem;">BookBridge</div>
+        <p style="font-size:0.85rem; color:var(--text-muted);">"Bridge the Gap Between Books and Readers" — Official RCTI Digital Marketplace.</p>
+      </div>
+
+      <div>
+        <h4 style="font-size:0.95rem; font-weight:700; color:var(--text-white); margin-bottom:1rem;">Quick Links</h4>
+        <ul style="list-style:none; font-size:0.85rem; line-height:2; color:var(--text-muted);">
+          <li><a href="#home">Home</a></li>
+          <li><a href="#departmentHub">Department Hubs</a></li>
+          <li><a href="#marketplace">Book Marketplace</a></li>
+          <li><a href="#collegeCommunity">RCTI Community</a></li>
+        </ul>
+      </div>
+
+      <div>
+        <h4 style="font-size:0.95rem; font-weight:700; color:var(--text-white); margin-bottom:1rem;">Legal & Policy</h4>
+        <ul style="list-style:none; font-size:0.85rem; line-height:2; color:var(--text-muted);">
+          <li><a href="#">Privacy Policy</a></li>
+          <li><a href="#">Terms & Conditions</a></li>
+          <li><a href="#">Campus Safety Guidelines</a></li>
+        </ul>
+      </div>
+
+      <div>
+        <h4 style="font-size:0.95rem; font-weight:700; color:var(--text-white); margin-bottom:1rem;">Connect With Us</h4>
+        <div style="display:flex; gap:1rem; font-size:1.2rem; color:var(--text-muted);">
+          <a href="#"><i class="fa-brands fa-github"></i></a>
+          <a href="#"><i class="fa-brands fa-linkedin"></i></a>
+          <a href="#"><i class="fa-brands fa-whatsapp"></i></a>
+          <a href="#"><i class="fa-brands fa-instagram"></i></a>
+        </div>
+      </div>
+    </div>
+
+    <div style="padding-top:2rem; border-top:1px solid var(--border-subtle); font-size:0.85rem; color:var(--text-subtle);">
+      © 2026 Department of Computer Engineering | R. C. Technical Institute, Ahmedabad (Group 05 Project).
+    </div>
+  </footer>
+
+  <!-- SCRIPTS -->
+  <script src="js/database.js"></script>
+  <script src="js/api.js"></script>
+  <script src="js/app.js"></script>
+</body>
+</html>
