@@ -1,1148 +1,772 @@
 /**
  * ==========================================================================
- * OFFICIAL RCTI APPLICATION CONTROLLER WITH ENTERPRISE SAAS DESIGN & REALTIME
+ * BOOKBRIDGE PREMIUM APPLICATION CONTROLLER
+ * Handles all page logic, components, animations, and UI interactions
  * ==========================================================================
  */
 
 document.addEventListener('DOMContentLoaded', async () => {
-  const socket = (typeof io !== 'undefined') ? io() : null;
+  initGlobalComponents();
+  await updateNavUserUI();
 
-  const state = {
-    filters: {
-      query: '',
-      mode: 'all',
-      genre: 'all',
-      semester: 'all',
-      branch: 'all',
-      resourceType: 'all',
-      condition: 'all',
-      category: 'all',
-      sort: 'newest'
-    },
-    currentUser: null,
-    selectedBook: null,
-    currentDashTab: 'listings',
-    chatTargetEmail: null,
-    chatBookTitle: '',
-    wizard: {
-      step: 1,
-      category: 'physical',
-      mode: 'exchange',
-      resourceType: 'textbook'
+  const path = window.location.pathname;
+  if (path.includes('admin')) initAdminPage();
+  else if (path.includes('browse')) initBrowsePage();
+  else if (path.includes('exchange')) initExchangePage();
+  else if (path.includes('donate')) initDonatePage();
+  else if (path.includes('contact')) initContactPage();
+  else if (path.includes('login')) initLoginPage();
+  else if (path.includes('register')) initRegisterPage();
+  else if (path.includes('dashboard')) initDashboardPage();
+  else initHomePage();
+});
+
+/* ==========================================================================
+   GLOBAL COMPONENTS
+   ========================================================================== */
+
+function initGlobalComponents() {
+  setupMobileMenu();
+  setupScrollToTop();
+  setupNavbarScroll();
+  setupScrollAnimations();
+  setupAccordions();
+  setupModals();
+  setupCounterAnimations();
+}
+
+/* 📱 MOBILE MENU */
+function setupMobileMenu() {
+  const btn = document.getElementById('mobileMenuToggle');
+  const drawer = document.getElementById('mobileNavDrawer');
+  if (!btn || !drawer) return;
+
+  btn.addEventListener('click', (e) => {
+    e.stopPropagation();
+    const isActive = drawer.classList.toggle('active');
+    btn.innerHTML = isActive ? '<i class="fa-solid fa-xmark"></i>' : '<i class="fa-solid fa-bars"></i>';
+    btn.setAttribute('aria-expanded', isActive);
+  });
+
+  drawer.querySelectorAll('a').forEach(link => {
+    link.addEventListener('click', () => {
+      drawer.classList.remove('active');
+      btn.innerHTML = '<i class="fa-solid fa-bars"></i>';
+      btn.setAttribute('aria-expanded', 'false');
+    });
+  });
+}
+
+/* 🔝 SCROLL TO TOP */
+function setupScrollToTop() {
+  const btn = document.getElementById('scrollTopBtn');
+  if (!btn) return;
+
+  window.addEventListener('scroll', () => {
+    btn.classList.toggle('visible', window.scrollY > 400);
+  }, { passive: true });
+
+  btn.addEventListener('click', () => {
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  });
+}
+
+/* 🧊 NAVBAR SCROLL EFFECT */
+function setupNavbarScroll() {
+  const navbar = document.getElementById('navbar');
+  if (!navbar) return;
+
+  window.addEventListener('scroll', () => {
+    navbar.classList.toggle('scrolled', window.scrollY > 10);
+  }, { passive: true });
+}
+
+/* ✨ SCROLL ANIMATIONS (Intersection Observer) */
+function setupScrollAnimations() {
+  const observer = new IntersectionObserver((entries) => {
+    entries.forEach(entry => {
+      if (entry.isIntersecting) {
+        entry.target.classList.add('animated');
+        observer.unobserve(entry.target);
+      }
+    });
+  }, { threshold: 0.1, rootMargin: '0px 0px -40px 0px' });
+
+  document.querySelectorAll('.animate-on-scroll').forEach(el => observer.observe(el));
+}
+
+/* 🔢 COUNTER ANIMATIONS */
+function setupCounterAnimations() {
+  const observer = new IntersectionObserver((entries) => {
+    entries.forEach(entry => {
+      if (entry.isIntersecting) {
+        animateCounter(entry.target);
+        observer.unobserve(entry.target);
+      }
+    });
+  }, { threshold: 0.3 });
+
+  document.querySelectorAll('[data-count]').forEach(el => observer.observe(el));
+}
+
+function animateCounter(el) {
+  const target = parseInt(el.dataset.count);
+  const duration = 1500;
+  const start = performance.now();
+
+  function update(now) {
+    const progress = Math.min((now - start) / duration, 1);
+    const eased = 1 - Math.pow(1 - progress, 3);
+    const current = Math.floor(eased * target);
+    el.textContent = current.toLocaleString('en-IN');
+    if (progress < 1) requestAnimationFrame(update);
+  }
+
+  requestAnimationFrame(update);
+}
+
+/* 🎵 ACCORDION */
+function setupAccordions() {
+  document.querySelectorAll('.accordion-trigger').forEach(trigger => {
+    trigger.addEventListener('click', () => {
+      const item = trigger.closest('.accordion-item');
+      const wasOpen = item.classList.contains('open');
+
+      // Close all siblings
+      item.closest('.accordion').querySelectorAll('.accordion-item').forEach(i => i.classList.remove('open'));
+
+      if (!wasOpen) item.classList.add('open');
+    });
+  });
+}
+
+/* 🪟 MODALS */
+function setupModals() {
+  // Book details modal
+  const bookModal = document.getElementById('bookDetailsModal');
+  const closeBookModal = document.getElementById('closeBookDetailsModal');
+  if (bookModal && closeBookModal) {
+    closeBookModal.addEventListener('click', () => bookModal.classList.remove('active'));
+    bookModal.addEventListener('click', (e) => {
+      if (e.target === bookModal) bookModal.classList.remove('active');
+    });
+  }
+
+  // Upload modal
+  const uploadModal = document.getElementById('uploadModal');
+  const closeUpload = document.getElementById('closeUploadModal');
+  if (uploadModal && closeUpload) {
+    closeUpload.addEventListener('click', () => uploadModal.classList.remove('active'));
+    uploadModal.addEventListener('click', (e) => {
+      if (e.target === uploadModal) uploadModal.classList.remove('active');
+    });
+  }
+
+  // Escape key closes all modals
+  document.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape') {
+      document.querySelectorAll('.modal-overlay.active').forEach(m => m.classList.remove('active'));
     }
+  });
+}
+
+/* 🔔 TOAST NOTIFICATION SYSTEM */
+function showToast(message, type = 'success') {
+  const container = document.getElementById('toastContainer');
+  if (!container) return;
+
+  const icons = {
+    success: 'fa-solid fa-circle-check',
+    warning: 'fa-solid fa-triangle-exclamation',
+    danger: 'fa-solid fa-circle-xmark',
+    info: 'fa-solid fa-circle-info'
   };
 
-  const DOM = {
-    themeToggleBtn: document.getElementById('themeToggleBtn'),
-    heroBookTrack: document.getElementById('heroBookTrack'),
-    genrePillsBar: document.getElementById('genrePillsBar'),
-    searchInput: document.getElementById('searchInput'),
-    categorySelect: document.getElementById('categorySelect'),
-    resourceTypeSelect: document.getElementById('resourceTypeSelect'),
-    conditionSelect: document.getElementById('conditionSelect'),
-    semesterSelect: document.getElementById('semesterSelect'),
-    branchSelect: document.getElementById('branchSelect'),
-    modeSelect: document.getElementById('modeSelect'),
-    bookGrid: document.getElementById('bookGrid'),
-    aiRecommendationsGrid: document.getElementById('aiRecommendationsGrid'),
-    dashTabContent: document.getElementById('dashTabContent'),
-    contactForm: document.getElementById('contactForm'),
+  const toast = document.createElement('div');
+  toast.className = `toast toast-${type}`;
+  toast.innerHTML = `
+    <i class="${icons[type] || icons.info} toast-icon"></i>
+    <span class="toast-message">${message}</span>
+    <button class="toast-close" onclick="this.closest('.toast').remove()"><i class="fa-solid fa-xmark"></i></button>
+  `;
 
-    // Department Hub
-    navDeptHub: document.getElementById('navDeptHub'),
-    navCommunity: document.getElementById('navCommunity'),
-    departmentHub: document.getElementById('departmentHub'),
-    hubBranchSelect: document.getElementById('hubBranchSelect'),
-    hubSemesterSelect: document.getElementById('hubSemesterSelect'),
-    hubResourceGrid: document.getElementById('hubResourceGrid'),
+  container.appendChild(toast);
+  requestAnimationFrame(() => toast.classList.add('show'));
 
-    // Contact Seller Modal
-    sellerContactModal: document.getElementById('sellerContactModal'),
-    closeSellerContactModal: document.getElementById('closeSellerContactModal'),
-    sellerModalName: document.getElementById('sellerModalName'),
-    sellerModalDept: document.getElementById('sellerModalDept'),
-    sellerModalPhone: document.getElementById('sellerModalPhone'),
-    sellerModalEmail: document.getElementById('sellerModalEmail'),
-    sellerCallBtn: document.getElementById('sellerCallBtn'),
-    sellerCopyBtn: document.getElementById('sellerCopyBtn'),
-    sellerMessageBtn: document.getElementById('sellerMessageBtn'),
+  setTimeout(() => {
+    toast.classList.remove('show');
+    setTimeout(() => toast.remove(), 400);
+  }, 4000);
+}
 
-    // Upload Wizard Modal
-    multiStepUploadModal: document.getElementById('multiStepUploadModal'),
-    closeUploadWizardModal: document.getElementById('closeUploadWizardModal'),
-    wizardForm: document.getElementById('wizardForm'),
-    wizardStep1: document.getElementById('wizardStep1'),
-    wizardStep2: document.getElementById('wizardStep2'),
-    wizardStep3: document.getElementById('wizardStep3'),
-    wizardStep4: document.getElementById('wizardStep4'),
-    btnStep1Next: document.getElementById('btnStep1Next'),
-    btnStep2Back: document.getElementById('btnStep2Back'),
-    btnStep2Next: document.getElementById('btnStep2Next'),
-    btnStep3Back: document.getElementById('btnStep3Back'),
-    btnStep3Next: document.getElementById('btnStep3Next'),
-    btnStep4Back: document.getElementById('btnStep4Back'),
-    wizardResTypeSelect: document.getElementById('wizardResTypeSelect'),
+/* 🔐 PASSWORD VISIBILITY TOGGLE */
+window.togglePasswordVisibility = function(inputId, btn) {
+  const input = document.getElementById(inputId);
+  if (!input) return;
+  const isPassword = input.type === 'password';
+  input.type = isPassword ? 'text' : 'password';
+  const icon = btn.querySelector('i');
+  if (icon) icon.className = isPassword ? 'fa-solid fa-eye-slash' : 'fa-solid fa-eye';
+};
 
-    // Edit Modal
-    editResourceModal: document.getElementById('editResourceModal'),
-    closeEditResourceModal: document.getElementById('closeEditResourceModal'),
-    editResourceForm: document.getElementById('editResourceForm'),
+/* 👤 NAV USER SESSION */
+async function updateNavUserUI() {
+  const currentUser = await window.BookAPI.getCurrentUser();
+  const navActions = document.querySelector('.nav-actions');
+  const mobileActions = document.querySelector('.drawer-actions');
+  const adminNavActions = document.getElementById('adminNavActions');
 
-    // PDF & QR Modals
-    pdfModal: document.getElementById('pdfModal'),
-    closePdfModal: document.getElementById('closePdfModal'),
-    pdfModalTitle: document.getElementById('pdfModalTitle'),
-    pdfFileName: document.getElementById('pdfFileName'),
-    btnDownloadPdfConfirm: document.getElementById('btnDownloadPdfConfirm'),
+  if (!currentUser) return;
 
-    qrModal: document.getElementById('qrModal'),
-    closeQrModal: document.getElementById('closeQrModal'),
-    qrModalBookTitle: document.getElementById('qrModalBookTitle'),
+  const role = (currentUser.role || 'student').toUpperCase();
+  const userHTML = `
+    <span style="font-size: 13px; font-weight: 600; color: var(--color-primary);">
+      <i class="fa-solid fa-user-circle"></i> ${currentUser.name}
+    </span>
+    <button id="btnNavLogout" class="btn btn-ghost btn-sm">Logout</button>
+  `;
 
-    // Admin
-    navAdmin: document.getElementById('navAdmin'),
-    adminPanel: document.getElementById('adminPanel'),
-    adminStatsGrid: document.getElementById('adminStatsGrid'),
-    adminUserTableContainer: document.getElementById('adminUserTableContainer'),
+  if (navActions && !adminNavActions) navActions.innerHTML = userHTML;
+  if (mobileActions) {
+    mobileActions.innerHTML = `
+      <div style="font-size: 13px; font-weight: 600; color: var(--color-primary); padding: 8px 0;">
+        <i class="fa-solid fa-user-circle"></i> ${currentUser.name} (${role})
+      </div>
+      <button id="btnMobileLogout" class="btn btn-secondary btn-block">Logout</button>
+    `;
+  }
 
-    // Chat Modal
-    chatModal: document.getElementById('chatModal'),
-    closeChatModal: document.getElementById('closeChatModal'),
-    chatHeaderTitle: document.getElementById('chatHeaderTitle'),
-    chatHeaderSub: document.getElementById('chatHeaderSub'),
-    chatMessagesContainer: document.getElementById('chatMessagesContainer'),
-    chatForm: document.getElementById('chatForm'),
-    chatInput: document.getElementById('chatInput'),
-
-    // Review Modal
-    reviewModal: document.getElementById('reviewModal'),
-    closeReviewModal: document.getElementById('closeReviewModal'),
-    reviewForm: document.getElementById('reviewForm'),
-    reviewSubtitle: document.getElementById('reviewSubtitle'),
-    reviewSellerEmail: document.getElementById('reviewSellerEmail'),
-    reviewRating: document.getElementById('reviewRating'),
-    reviewComment: document.getElementById('reviewComment'),
-
-    // Modals
-    navInfo: document.getElementById('navInfo'),
-    projectInfoModal: document.getElementById('projectInfoModal'),
-    closeProjectInfoModal: document.getElementById('closeProjectInfoModal'),
-
-    userAuthBtn: document.getElementById('userAuthBtn'),
-    authModal: document.getElementById('authModal'),
-    closeAuthModal: document.getElementById('closeAuthModal'),
-    tabLogin: document.getElementById('tabLogin'),
-    tabRegister: document.getElementById('tabRegister'),
-    loginForm: document.getElementById('loginForm'),
-    registerForm: document.getElementById('registerForm'),
-
-    listBookModalBtn: document.getElementById('listBookModalBtn'),
-    actionModal: document.getElementById('actionModal'),
-    closeActionModal: document.getElementById('closeActionModal'),
-    actionForm: document.getElementById('actionForm'),
-    actionTitle: document.getElementById('actionTitle'),
-    actionSubtitle: document.getElementById('actionSubtitle'),
-    actionBookId: document.getElementById('actionBookId'),
-    actionDetailsLabel: document.getElementById('actionDetailsLabel'),
-    actionSubmitBtn: document.getElementById('actionSubmitBtn'),
-    btnLiveChatDirect: document.getElementById('btnLiveChatDirect'),
-    btnWhatsappDirect: document.getElementById('btnWhatsappDirect'),
-
-    toastContainer: document.getElementById('toastContainer')
+  const logoutHandler = async () => {
+    await window.BookAPI.logout();
+    showToast('Logged out successfully', 'success');
+    setTimeout(() => window.location.reload(), 800);
   };
 
-  /* ⚡ SOCKET.IO REAL-TIME LISTENERS */
-  if (socket) {
-    socket.on('connect', () => {
-      console.log('[Socket.IO] Connected to real-time server');
-    });
+  document.getElementById('btnNavLogout')?.addEventListener('click', logoutHandler);
+  document.getElementById('btnMobileLogout')?.addEventListener('click', logoutHandler);
+}
 
-    socket.on('newMessage', (msg) => {
-      if (state.chatTargetEmail && (msg.senderEmail === state.chatTargetEmail || msg.receiverEmail === state.chatTargetEmail)) {
-        appendMessageToContainer(msg);
-      } else if (state.currentUser && msg.receiverEmail === state.currentUser.email) {
-        showToast(`💬 New live message from ${msg.senderName}: "${msg.text}"`, 'info');
-      }
-    });
+/* ==========================================================================
+   BOOK CARD RENDERER (Enhanced)
+   ========================================================================== */
 
-    socket.on('newReview', (review) => {
-      showToast(`⭐ New ${review.rating}-Star Review by ${review.reviewerName}!`, 'success');
-      renderCatalog();
-    });
+async function renderBooksGrid(container, books, actionLabel = 'View Details') {
+  if (!container) return;
 
-    socket.on('bookDeleted', (id) => {
-      const el = document.querySelector(`.book-card[data-id="${id}"]`);
-      if (el) {
-        el.style.transition = 'all 0.4s ease';
-        el.style.opacity = '0';
-        el.style.transform = 'scale(0.8)';
-        setTimeout(() => el.remove(), 400);
-      }
-      showToast(`⚡ Listing removed from marketplace live`, 'info');
-    });
-
-    socket.on('bookUpdated', (updatedBook) => {
-      showToast(`✨ Listing updated live: "${updatedBook.title}"`, 'info');
-      renderCatalog();
-      renderDepartmentHub();
-    });
-
-    socket.on('newBook', (book) => {
-      showToast(`✨ New resource published: "${book.title}"!`, 'info');
-      renderCatalog();
-      renderDepartmentHub();
-    });
-  }
-
-  function appendMessageToContainer(m) {
-    const isMine = m.senderEmail === state.currentUser?.email;
-    const msgDiv = document.createElement('div');
-    msgDiv.style.cssText = `align-self: ${isMine ? 'flex-end' : 'flex-start'}; max-width: 80%; background: ${isMine ? 'var(--text-white)' : 'var(--bg-card)'}; color: ${isMine ? 'var(--text-dark)' : 'var(--text-white)'}; padding: 0.6rem 1rem; border-radius: 12px; font-size: 0.88rem; border: 1px solid var(--border-pill);`;
-    msgDiv.innerHTML = `
-      <div style="font-size: 0.7rem; opacity: 0.75; font-weight: 700;">${isMine ? 'You' : escapeHTML(m.senderName)}</div>
-      <div>${escapeHTML(m.text)}</div>
-    `;
-    DOM.chatMessagesContainer.appendChild(msgDiv);
-    DOM.chatMessagesContainer.scrollTop = DOM.chatMessagesContainer.scrollHeight;
-  }
-
-  async function initApp() {
-    setupTheme();
-    setupEventListeners();
-    await updateAuthUI();
-    await render3DHeroTrack();
-    await renderCatalog();
-    await renderDepartmentHub();
-    await renderAIRecommendations();
-    await renderDashboardTab(state.currentDashTab);
-  }
-
-  function setupTheme() {
-    const savedTheme = localStorage.getItem('bookbridge_theme');
-    if (savedTheme === 'light') {
-      document.body.classList.add('light-theme');
-      DOM.themeToggleBtn.textContent = '☀️';
-    } else {
-      DOM.themeToggleBtn.textContent = '🌙';
-    }
-
-    DOM.themeToggleBtn.addEventListener('click', () => {
-      document.body.classList.toggle('light-theme');
-      const isLight = document.body.classList.contains('light-theme');
-      localStorage.setItem('bookbridge_theme', isLight ? 'light' : 'dark');
-      DOM.themeToggleBtn.textContent = isLight ? '☀️' : '🌙';
-      showToast(isLight ? 'Switched to Light Theme ☀️' : 'Switched to Dark Theme 🌙', 'info');
-    });
-  }
-
-  async function updateAuthUI() {
-    state.currentUser = await window.BookAPI.getCurrentUser();
-    if (state.currentUser) {
-      const roleBadge = (state.currentUser.role || 'student').toUpperCase();
-      DOM.userAuthBtn.innerHTML = `👤 ${escapeHTML(state.currentUser.name)} (${roleBadge} • ${state.currentUser.branch} Sem ${state.currentUser.semester})`;
-      if (state.currentUser.role === 'admin') {
-        DOM.navAdmin.style.display = 'block';
-        await renderAdminPanel();
-      } else {
-        DOM.navAdmin.style.display = 'none';
-        DOM.adminPanel.style.display = 'none';
-      }
-    } else {
-      DOM.userAuthBtn.innerHTML = `👤 Sign In`;
-      DOM.navAdmin.style.display = 'none';
-      DOM.adminPanel.style.display = 'none';
-    }
-  }
-
-  /* 🏛️ DEPARTMENT RESOURCE HUB */
-  async function renderDepartmentHub() {
-    const branch = DOM.hubBranchSelect.value;
-    const sem = DOM.hubSemesterSelect.value;
-
-    const books = await window.BookAPI.getBooks({
-      branch: branch,
-      semester: sem
-    });
-    const wishlistIds = await window.BookDB.getWishlistIds();
-
-    if (books.length === 0) {
-      DOM.hubResourceGrid.innerHTML = `
-        <div style="grid-column:1/-1; text-align:center; padding:3rem; background:var(--bg-card); border-radius:var(--radius-md);">
-          <div style="font-size:2.5rem; margin-bottom:1rem;">📋</div>
-          <h3 style="font-family:var(--font-title); font-size:1.4rem; margin-bottom:0.5rem;">No departmental resources listed yet</h3>
-          <p style="color:var(--text-muted); font-size:0.88rem;">Be the first to post a GTU textbook or practical lab manual for ${branch}!</p>
-        </div>
-      `;
-      return;
-    }
-
-    DOM.hubResourceGrid.innerHTML = books.map(b => createBookCardHTML(b, wishlistIds.includes(b.id))).join('');
-  }
-
-  /* 👤 CONTACT SELLER POPUP MODAL */
-  function openSellerContactModal(b) {
-    const seller = b.seller || {};
-    DOM.sellerModalName.textContent = seller.name || 'Student Seller';
-    DOM.sellerModalDept.textContent = `${b.branch || 'CE'} Department • GTU Sem ${b.semester} • RCTI Ahmedabad`;
-    DOM.sellerModalPhone.textContent = seller.whatsapp || '+91 98765 43210';
-    DOM.sellerModalEmail.textContent = seller.email || 'student@rcti.ac.in';
-    DOM.sellerCallBtn.href = `tel:${(seller.whatsapp || '+919876543210').replace(/[^0-9+]/g, '')}`;
-
-    DOM.sellerCopyBtn.onclick = () => {
-      navigator.clipboard.writeText(seller.whatsapp || '+919876543210');
-      showToast('📋 Phone number copied to clipboard!', 'success');
-    };
-
-    DOM.sellerMessageBtn.onclick = () => {
-      closeModal(DOM.sellerContactModal);
-      openChatModal(seller.email || 'seller@rcti.ac.in', b.title);
-    };
-
-    openModal(DOM.sellerContactModal);
-  }
-
-  /* 📥 PDF PREVIEW MODAL */
-  function openPdfModal(title, pdfUrl) {
-    DOM.pdfModalTitle.textContent = title;
-    DOM.pdfFileName.textContent = `${title} — GTU Practical Manual.pdf`;
-    DOM.btnDownloadPdfConfirm.onclick = () => {
-      showToast(`Downloading GTU Practical Manual PDF for ${title}...`, 'success');
-      closeModal(DOM.pdfModal);
-    };
-    openModal(DOM.pdfModal);
-  }
-
-  /* 📲 QR CODE SHARE MODAL */
-  function openQrModal(bookTitle) {
-    DOM.qrModalBookTitle.textContent = `QR Code Link for "${bookTitle}"`;
-    openModal(DOM.qrModal);
-  }
-
-  /* WIZARD STEPS */
-  function setWizardStep(stepNum) {
-    state.wizard.step = stepNum;
-    DOM.wizardStep1.style.display = stepNum === 1 ? 'block' : 'none';
-    DOM.wizardStep2.style.display = stepNum === 2 ? 'block' : 'none';
-    DOM.wizardStep3.style.display = stepNum === 3 ? 'block' : 'none';
-    DOM.wizardStep4.style.display = stepNum === 4 ? 'block' : 'none';
-
-    document.getElementById('stepInd1').style.color = stepNum >= 1 ? 'var(--text-white)' : 'var(--text-muted)';
-    document.getElementById('stepInd2').style.color = stepNum >= 2 ? 'var(--text-white)' : 'var(--text-muted)';
-    document.getElementById('stepInd3').style.color = stepNum >= 3 ? 'var(--text-white)' : 'var(--text-muted)';
-    document.getElementById('stepInd4').style.color = stepNum >= 4 ? 'var(--text-white)' : 'var(--text-muted)';
-
-    if (stepNum === 3) {
-      if (state.wizard.category === 'physical') {
-        DOM.wizardResTypeSelect.innerHTML = `
-          <option value="textbook">📖 Printed Textbook</option>
-          <option value="lab_manual">📋 Practical Lab Manual Workbook</option>
-          <option value="notes">📑 Printed Lecture Notes</option>
-          <option value="assignment">📄 Assignment Hardcopy</option>
-          <option value="question_bank">📑 Previous Year Question Papers</option>
-          <option value="project_report">📂 Practical File / Project Report</option>
-        `;
-      } else {
-        DOM.wizardResTypeSelect.innerHTML = `
-          <option value="lab_manual">📋 Lab Manual PDF</option>
-          <option value="textbook">📖 E-Book PDF</option>
-          <option value="notes">📑 Notes PDF</option>
-          <option value="question_bank">📑 Question Paper PDF</option>
-          <option value="project_report">💻 Source Code / ZIP File</option>
-          <option value="ppt">📊 Video Lecture / PPT Presentation</option>
-        `;
-      }
-    }
-  }
-
-  /* 🛡️ ADMIN PANEL */
-  async function renderAdminPanel() {
-    DOM.adminPanel.style.display = 'block';
-    const stats = await window.BookAPI.getAdminStats();
-    const users = await window.BookAPI.getAllUsers();
-
-    DOM.adminStatsGrid.innerHTML = `
-      <div style="background:var(--bg-card); border:1px solid var(--border-pill); border-radius:var(--radius-md); padding:1.25rem;">
-        <div style="font-size:0.8rem; color:var(--text-muted);">Registered Users</div>
-        <div style="font-size:1.8rem; font-weight:800; font-family:var(--font-title);">${stats.totalUsers}</div>
-      </div>
-      <div style="background:var(--bg-card); border:1px solid var(--border-pill); border-radius:var(--radius-md); padding:1.25rem;">
-        <div style="font-size:0.8rem; color:var(--text-muted);">Total Listings</div>
-        <div style="font-size:1.8rem; font-weight:800; font-family:var(--font-title);">${stats.totalListings}</div>
-      </div>
-      <div style="background:var(--bg-card); border:1px solid var(--border-pill); border-radius:var(--radius-md); padding:1.25rem;">
-        <div style="font-size:0.8rem; color:var(--text-muted);">Active Swaps</div>
-        <div style="font-size:1.8rem; font-weight:800; font-family:var(--font-title);">${stats.activeSwaps}</div>
-      </div>
-      <div style="background:var(--bg-card); border:1px solid var(--border-pill); border-radius:var(--radius-md); padding:1.25rem;">
-        <div style="font-size:0.8rem; color:var(--text-muted);">Free Donations</div>
-        <div style="font-size:1.8rem; font-weight:800; font-family:var(--font-title);">${stats.freeDonations}</div>
+  if (!books || books.length === 0) {
+    container.innerHTML = `
+      <div class="empty-state">
+        <div class="empty-state-icon">📚</div>
+        <h3>No Books Found</h3>
+        <p>No books match your current filters. Try adjusting your search criteria.</p>
+        <a href="/browse.html" class="btn btn-secondary btn-sm">Browse All Books</a>
       </div>
     `;
-
-    DOM.adminUserTableContainer.innerHTML = `
-      <table style="width:100%; text-align:left; font-size:0.88rem; border-collapse:collapse;">
-        <thead>
-          <tr style="border-bottom:1px solid var(--border-subtle); color:var(--text-muted);">
-            <th style="padding:0.75rem;">Name</th>
-            <th style="padding:0.75rem;">Enrollment No</th>
-            <th style="padding:0.75rem;">Email</th>
-            <th style="padding:0.75rem;">Branch / Sem</th>
-            <th style="padding:0.75rem;">Role</th>
-            <th style="padding:0.75rem;">Action</th>
-          </tr>
-        </thead>
-        <tbody>
-          ${users.map(u => `
-            <tr style="border-bottom:1px solid var(--border-pill);">
-              <td style="padding:0.75rem; font-weight:600;">${escapeHTML(u.name)}</td>
-              <td style="padding:0.75rem;">${escapeHTML(u.enrollment || 'N/A')}</td>
-              <td style="padding:0.75rem;">${escapeHTML(u.email)}</td>
-              <td style="padding:0.75rem;">${u.branch} Sem ${u.semester}</td>
-              <td style="padding:0.75rem;"><span class="badge-mode ${u.role === 'admin' ? 'sell' : 'buy'}">${(u.role || 'student').toUpperCase()}</span></td>
-              <td style="padding:0.75rem;">
-                ${u.role !== 'admin' ? `<button class="card-btn btn-delete-user" data-user-id="${u.id}" style="background:#f43f5e; border-color:#f43f5e; color:#fff;">Ban / Delete</button>` : 'System'}
-              </td>
-            </tr>
-          `).join('')}
-        </tbody>
-      </table>
-    `;
-
-    document.querySelectorAll('.btn-delete-user').forEach(btn => {
-      btn.addEventListener('click', async (e) => {
-        const uid = e.target.dataset.userId;
-        if (confirm('Ban / delete this user?')) {
-          await window.BookAPI.deleteUser(uid);
-          showToast('User deleted successfully', 'info');
-          await renderAdminPanel();
-        }
-      });
-    });
+    return;
   }
 
-  /* 💬 LIVE CHAT */
-  async function openChatModal(receiverEmail, bookTitle) {
-    if (!state.currentUser) {
-      showToast('Please sign in to send direct messages', 'info');
-      openModal(DOM.authModal);
-      return;
-    }
-    state.chatTargetEmail = receiverEmail;
-    state.chatBookTitle = bookTitle;
+  const wishlistIds = await window.BookAPI.getWishlistIds();
 
-    DOM.chatHeaderTitle.textContent = `Chat with ${receiverEmail}`;
-    DOM.chatHeaderSub.textContent = `Inquiry for "${bookTitle}"`;
-
-    await renderChatMessages();
-    openModal(DOM.chatModal);
-  }
-
-  async function renderChatMessages() {
-    if (!state.chatTargetEmail) return;
-    const msgs = await window.BookAPI.getMessages(state.chatTargetEmail);
-
-    if (msgs.length === 0) {
-      DOM.chatMessagesContainer.innerHTML = '<p style="color:var(--text-muted); font-size:0.85rem; text-align:center;">No messages yet. Send a message to start conversation!</p>';
-      return;
-    }
-
-    DOM.chatMessagesContainer.innerHTML = '';
-    msgs.forEach(m => appendMessageToContainer(m));
-  }
-
-  /* 3D Hero Track */
-  async function render3DHeroTrack() {
-    const books = await window.BookAPI.getBooks({});
-    
-    DOM.heroBookTrack.innerHTML = books.map(b => `
-      <div class="book-3d-item" data-id="${b.id}">
-        <div class="book-3d-cover" style="background: ${b.coverGradient}; color: ${b.textColor || '#ffffff'};">
-          <div style="font-size:0.7rem; opacity:0.85; text-transform:uppercase; font-weight:700;">
-            ${(b.category || 'physical').toUpperCase()} • Sem ${b.semester}
-          </div>
-          <div style="font-size:1.6rem; margin-bottom: 0.25rem;">${b.icon || '📚'}</div>
-          <div>
-            <div class="book-3d-title">${escapeHTML(b.title)}</div>
-            <div class="book-3d-author">by ${escapeHTML(b.author)}</div>
-          </div>
-        </div>
-      </div>
-    `).join('');
-
-    DOM.heroBookTrack.addEventListener('click', (e) => {
-      const item = e.target.closest('.book-3d-item');
-      if (item) openActionModal(item.dataset.id);
-    });
-  }
-
-  /* Catalog */
-  async function renderCatalog() {
-    const books = await window.BookAPI.getBooks(state.filters);
-    const wishlistIds = await window.BookDB.getWishlistIds();
-
-    if (books.length === 0) {
-      DOM.bookGrid.innerHTML = `
-        <div style="grid-column:1/-1; text-align:center; padding:4rem; background:var(--bg-card); border-radius:var(--radius-md);">
-          <div style="font-size:2.5rem; margin-bottom:1rem;">🌉</div>
-          <h3 style="font-family:var(--font-title); font-size:1.5rem; margin-bottom:0.5rem;">No resources found</h3>
-          <p style="color:var(--text-muted); font-size:0.9rem;">Try selecting a different category, module, resource type, condition, or GTU semester.</p>
-        </div>
-      `;
-      return;
-    }
-
-    DOM.bookGrid.innerHTML = books.map(b => createBookCardHTML(b, wishlistIds.includes(b.id))).join('');
-  }
-
-  async function renderAIRecommendations() {
-    const branch = state.currentUser?.branch || 'CE';
-    const semester = state.currentUser?.semester || 5;
-    const aiBooks = await window.BookDB.getAIRecommendations(branch, semester);
-    const wishlistIds = await window.BookDB.getWishlistIds();
-
-    DOM.aiRecommendationsGrid.innerHTML = aiBooks.map(b => createBookCardHTML(b, wishlistIds.includes(b.id))).join('');
-  }
-
-  function createBookCardHTML(b, isWishlisted = false) {
-    let priceHTML = `<span class="card-price">₹${parseFloat(b.price || 0).toFixed(0)}</span>`;
-    let actionBtnLabel = '🛒 Buy';
-
-    if (b.mode === 'exchange') {
-      priceHTML = `<span class="price-tag-exchange">🔄 EXCHANGE ONLY</span>`;
-      actionBtnLabel = '🔄 Exchange';
-    } else if (b.mode === 'donate') {
-      priceHTML = `<span class="price-tag-free">🎁 FREE</span>`;
-      actionBtnLabel = b.resourceType === 'lab_manual' ? '📥 Download' : '🎁 Claim';
-    }
-
-    if (b.status !== 'Available') actionBtnLabel = b.status;
-
-    const resLabel = (b.resourceType || 'textbook').replace('_', ' ').toUpperCase();
-    const catBadge = (b.category || 'physical') === 'digital' ? '📄 DIGITAL' : '📦 PHYSICAL';
-    const condBadge = b.condition || 'Like New';
-    const isAdmin = state.currentUser?.role === 'admin';
-    const isMyUpload = state.currentUser?.email === b.seller?.email;
+  container.innerHTML = books.map(b => {
+    const isWished = wishlistIds.includes(b.id);
+    const ratingVal = b.rating || 4.7;
+    const typeLabel = (b.mode || 'sell').toUpperCase();
+    const initials = (b.seller?.name || 'BB').split(' ').map(w => w[0]).join('').substring(0, 2).toUpperCase();
+    const isDonation = b.price === 0 || b.mode === 'donate';
+    const coverImg = b.cover || 'https://images.unsplash.com/photo-1544716278-ca5e3f4abd8c?auto=format&fit=crop&w=400&q=80';
 
     return `
-      <div class="book-card" data-id="${b.id}">
-        <button class="btn-wishlist-heart ${isWishlisted ? 'active' : ''}" data-wishlist-id="${b.id}" title="Add to Wishlist">
-          <i class="fa-${isWishlisted ? 'solid' : 'regular'} fa-heart"></i>
-        </button>
-
-        <div class="card-cover" style="background: ${b.coverGradient || 'linear-gradient(135deg, #18181c 0%, #2a2a32 100%)'}; color: ${b.textColor || '#ffffff'};">
-          <span class="badge-mode ${b.mode}">${b.mode.toUpperCase()}</span>
-          <div style="font-size:0.68rem; opacity:0.9; font-weight:800; text-transform:uppercase; margin-bottom:0.3rem; letter-spacing:0.5px;">
-            ${catBadge} • ${resLabel} • Sem ${b.semester}
-          </div>
-          <div style="font-size: 2.5rem; margin-bottom: 0.25rem;">${b.icon || '📋'}</div>
-          <div style="font-size:0.75rem; font-weight:700; opacity:0.9;">⭐ ${condBadge}</div>
+      <div class="book-card">
+        <div class="book-card-actions">
+          <button class="card-action-btn ${isWished ? 'active' : ''}" onclick="handleToggleWishlist(event, '${b.id}')" title="Wishlist" aria-label="Toggle wishlist">
+            <i class="${isWished ? 'fa-solid' : 'fa-regular'} fa-heart"></i>
+          </button>
+          <button class="card-action-btn" onclick="handleShare('${b.title}')" title="Share" aria-label="Share book">
+            <i class="fa-solid fa-share-nodes"></i>
+          </button>
         </div>
 
-        <div class="card-body">
-          <div class="card-genre">${escapeHTML(b.branch || 'CE')} • ${escapeHTML(b.subject || b.genre)}</div>
-          <h3 class="card-title">${escapeHTML(b.title)}</h3>
-          <div class="card-author">by ${escapeHTML(b.author)} • ⭐ ${b.seller?.rating || 5.0}</div>
-          
-          <div class="card-footer">
-            <div class="price-container">
-              ${priceHTML}
-              <span style="font-size:0.75rem; color:var(--text-muted); font-weight:600;">RCTI Campus</span>
+        <div class="book-cover">
+          ${isDonation ? '<span class="donation-badge"><i class="fa-solid fa-gift"></i> FREE</span>' : ''}
+          <img src="${coverImg}" alt="${b.title}" loading="lazy">
+        </div>
+
+        <div class="book-body">
+          <div class="book-meta-row">
+            <span class="book-category">${b.branch || b.genre || 'Academic'}</span>
+            <span class="book-type">${typeLabel}</span>
+          </div>
+
+          <div class="book-title">${b.title}</div>
+          <div class="book-author">by ${b.author || 'Unknown'} · ${b.edition || 'Latest'}</div>
+
+          <div class="book-details">
+            <span class="book-detail-tag"><i class="fa-solid fa-language"></i> ${b.language || 'English'}</span>
+            <span class="book-detail-tag"><i class="fa-solid fa-tag"></i> ${b.condition || 'Good'}</span>
+            <span class="book-detail-tag"><i class="fa-solid fa-location-dot"></i> ${(b.location || 'Campus').substring(0, 15)}</span>
+          </div>
+
+          <div class="book-rating">
+            <i class="fa-solid fa-star"></i> ${ratingVal}
+            <span style="color: var(--color-gray-light); margin-left: 4px;">· ${b.status || 'Available'}</span>
+          </div>
+
+          <div class="book-seller">
+            <span class="book-seller-avatar">${initials}</span>
+            <span>${b.seller?.name || 'Student'}</span>
+          </div>
+
+          <div class="book-footer">
+            <div class="${isDonation ? 'book-price-free' : 'book-price'}">
+              ${isDonation ? 'FREE' : '₹' + b.price}
+              ${b.original && b.price > 0 ? '<span class="original-price">₹' + b.original + '</span>' : ''}
             </div>
-
-            <div class="card-actions-row">
-              <button class="card-btn btn-view-details" data-action-id="${b.id}" title="View Details">👁️ Details</button>
-              <button class="card-btn btn-contact-seller-modal" data-seller-id="${b.id}" title="Contact Seller">👤 Contact</button>
-              <button class="card-btn btn-qr-share" data-share-title="${escapeHTML(b.title)}" title="QR Code">📲</button>
-              
-              ${isMyUpload ? `
-                <button class="card-btn btn-my-edit" data-edit-id="${b.id}" title="Edit Listing">✏️ Edit</button>
-                <button class="card-btn btn-my-toggle-sold" data-toggle-sold-id="${b.id}" style="background:#10b981; color:#fff; border-color:#10b981;" title="Toggle Status">
-                  ${b.status === 'Sold' ? 'Available' : 'Sold'}
-                </button>
-              ` : ''}
-
-              ${b.resourceType === 'lab_manual' || b.category === 'digital' ? `
-                <button class="card-btn btn-pdf-preview" data-pdf-title="${escapeHTML(b.title)}" style="background:var(--accent-blue); color:#fff; border-color:var(--accent-blue);" title="Preview/Download PDF">
-                  📄 PDF
-                </button>
-              ` : ''}
-
-              ${isAdmin ? `
-                <button class="card-btn btn-admin-delete-book" data-delete-book-id="${b.id}" style="background:#f43f5e; color:#fff; border-color:#f43f5e;" title="Admin Delete">
-                  🗑️
-                </button>
-              ` : ''}
-
-              <button class="card-btn" data-action-id="${b.id}" ${b.status !== 'Available' ? 'disabled style="opacity:0.5;"' : ''}>
-                ${actionBtnLabel}
-              </button>
-            </div>
+            <button class="btn btn-primary btn-sm" onclick="handleBookAction('${b.id}', '${actionLabel}')">${actionLabel}</button>
           </div>
         </div>
       </div>
     `;
+  }).join('');
+}
+
+/* ❤️ WISHLIST TOGGLE */
+window.handleToggleWishlist = async function(e, bookId) {
+  e.stopPropagation();
+  const added = await window.BookAPI.toggleWishlist(bookId);
+  const btn = e.currentTarget;
+  const icon = btn.querySelector('i');
+
+  if (added) {
+    btn.classList.add('active');
+    icon.className = 'fa-solid fa-heart';
+    showToast('Added to wishlist', 'success');
+  } else {
+    btn.classList.remove('active');
+    icon.className = 'fa-regular fa-heart';
+    showToast('Removed from wishlist', 'info');
+  }
+};
+
+/* 📤 SHARE */
+window.handleShare = function(title) {
+  if (navigator.share) {
+    navigator.share({ title: `${title} - BookBridge`, url: window.location.href })
+      .catch(() => {});
+  } else {
+    navigator.clipboard.writeText(window.location.href)
+      .then(() => showToast('Link copied to clipboard!', 'success'))
+      .catch(() => showToast('Could not copy link', 'warning'));
+  }
+};
+
+/* 📖 BOOK ACTION MODAL */
+window.handleBookAction = async function(bookId, actionLabel) {
+  const book = await window.BookAPI.getBookById(bookId);
+  if (!book) return;
+
+  const modal = document.getElementById('bookDetailsModal');
+  const titleEl = document.getElementById('modalBookTitle');
+  const bodyEl = document.getElementById('modalBookBody');
+  const waBtn = document.getElementById('btnModalWhatsapp');
+  const confirmBtn = document.getElementById('btnModalActionConfirm');
+
+  if (!modal) return;
+
+  titleEl.textContent = book.title;
+  const seller = book.seller || { name: 'Student', whatsapp: '+919876543210', email: 'student@rcti.ac.in' };
+  const waNumber = (seller.whatsapp || '+919876543210').replace(/[^0-9]/g, '');
+
+  bodyEl.innerHTML = `
+    <div style="display: grid; gap: 10px; font-size: 14px; line-height: 1.8;">
+      <div class="flex-between"><span style="color: var(--color-gray);">Author</span><strong>${book.author || 'N/A'}</strong></div>
+      <div class="flex-between"><span style="color: var(--color-gray);">Subject</span><strong>${book.subject || book.genre || 'Academic'}</strong></div>
+      <div class="flex-between"><span style="color: var(--color-gray);">Department</span><span class="badge badge-primary">${book.branch || 'CE'}</span></div>
+      <div class="flex-between"><span style="color: var(--color-gray);">Condition</span><strong>${book.condition || 'Good'}</strong></div>
+      <div class="flex-between"><span style="color: var(--color-gray);">Rating</span><strong style="color: var(--color-warning);">⭐ ${book.rating || 4.8}</strong></div>
+      <div class="flex-between"><span style="color: var(--color-gray);">Price</span><strong style="color: var(--color-primary);">${book.price > 0 ? '₹' + book.price : 'FREE'}</strong></div>
+      <div style="padding: 12px; background: rgba(0,0,0,0.02); border-radius: 8px; margin-top: 4px;">
+        <span style="color: var(--color-gray); font-size: 12px; text-transform: uppercase; letter-spacing: 0.5px;">Description</span>
+        <p style="margin-top: 4px; color: var(--color-dark);">${book.description || 'Academic resource listed on BookBridge.'}</p>
+      </div>
+      <div class="flex-between" style="margin-top: 4px;"><span style="color: var(--color-gray);">Listed by</span><strong>${seller.name}</strong></div>
+    </div>
+  `;
+
+  waBtn.href = `https://wa.me/${waNumber}?text=${encodeURIComponent(`Hi ${seller.name}, I'm interested in "${book.title}" on BookBridge!`)}`;
+  confirmBtn.textContent = `${actionLabel}`;
+  confirmBtn.onclick = async () => {
+    const user = await window.BookAPI.getCurrentUser();
+    if (!user) {
+      showToast('Please login to continue', 'warning');
+      setTimeout(() => window.location.href = '/login.html', 1000);
+      return;
+    }
+    await window.BookAPI.sendMessage(seller.email, `Interested in: ${book.title}`, book.title);
+    showToast(`Request sent to ${seller.name}!`, 'success');
+    modal.classList.remove('active');
+  };
+
+  modal.classList.add('active');
+};
+
+/* ==========================================================================
+   PAGE CONTROLLERS
+   ========================================================================== */
+
+/* 🏠 HOME */
+async function initHomePage() {
+  const grid = document.getElementById('popularBooksGrid');
+  if (!grid) return;
+  const books = await window.BookAPI.getBooks();
+  await renderBooksGrid(grid, books.slice(0, 8), 'View Details');
+}
+
+/* 🔍 BROWSE */
+async function initBrowsePage() {
+  const grid = document.getElementById('browseBooksGrid');
+  const searchInput = document.getElementById('browseSearchInput');
+  const searchBtn = document.getElementById('btnBrowseSearch');
+  const pills = document.querySelectorAll('#deptPillsBar .filter-pill');
+  const subjectSelect = document.getElementById('browseSubjectSelect');
+  const conditionSelect = document.getElementById('browseConditionSelect');
+  const maxPriceInput = document.getElementById('browseMaxPrice');
+  const sortSelect = document.getElementById('browseSortSelect');
+  const resultsCount = document.getElementById('browseResultsCount');
+
+  // Pre-fill from URL params
+  const params = new URLSearchParams(window.location.search);
+  if (searchInput && params.get('q')) searchInput.value = params.get('q');
+
+  let currentBranch = params.get('branch') || 'ALL';
+
+  // Activate correct pill from URL
+  if (currentBranch !== 'ALL') {
+    pills.forEach(p => {
+      p.classList.remove('active');
+      if (p.dataset.dept === currentBranch) p.classList.add('active');
+    });
   }
 
-  /* 📚 MY UPLOADS & DASHBOARD TABS */
-  async function renderDashboardTab(tabName) {
-    state.currentDashTab = tabName;
-    document.querySelectorAll('#profileSidebarNav li').forEach(t => t.classList.remove('active'));
-    const activeTabEl = document.querySelector(`[data-dash-tab="${tabName}"]`);
-    if (activeTabEl) activeTabEl.classList.add('active');
+  let debounceTimer;
 
-    if (tabName === 'listings') {
-      const books = await window.BookAPI.getBooks({});
-      const myListings = books.filter(b => b.seller?.email === (state.currentUser?.email || 'student@rcti.ac.in'));
-      
-      DOM.dashTabContent.innerHTML = `
-        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:1.5rem;">
-          <div>
-            <h3 style="font-family:var(--font-title); font-size:1.6rem; color:var(--text-white);">📚 My Uploaded Resources</h3>
-            <p style="font-size:0.88rem; color:var(--text-muted);">Physical books & digital PDF lab manuals listed under your account.</p>
-          </div>
-          <button class="btn-pill" id="btnOpenUploadWizard" style="padding:0.7rem 1.5rem;">+ Upload Resource Wizard</button>
+  async function fetchAndRender() {
+    const filters = {};
+    const query = searchInput?.value.trim();
+    if (query) filters.query = query;
+    if (currentBranch !== 'ALL') filters.branch = currentBranch;
+    if (subjectSelect?.value && subjectSelect.value !== 'All Subjects') filters.subject = subjectSelect.value;
+    if (conditionSelect?.value && conditionSelect.value !== 'Any Condition') filters.condition = conditionSelect.value;
+    if (maxPriceInput?.value) filters.maxPrice = maxPriceInput.value;
+    if (sortSelect?.value) filters.sort = sortSelect.value;
+
+    const books = await window.BookAPI.getBooks(filters);
+    if (resultsCount) resultsCount.textContent = `${books.length} book${books.length !== 1 ? 's' : ''} found`;
+    await renderBooksGrid(grid, books, 'View Details');
+  }
+
+  function debouncedSearch() {
+    clearTimeout(debounceTimer);
+    debounceTimer = setTimeout(fetchAndRender, 300);
+  }
+
+  pills.forEach(pill => {
+    pill.addEventListener('click', () => {
+      pills.forEach(p => p.classList.remove('active'));
+      pill.classList.add('active');
+      currentBranch = pill.dataset.dept || 'ALL';
+      fetchAndRender();
+    });
+  });
+
+  searchBtn?.addEventListener('click', fetchAndRender);
+  searchInput?.addEventListener('keypress', (e) => { if (e.key === 'Enter') fetchAndRender(); });
+  searchInput?.addEventListener('input', debouncedSearch);
+  subjectSelect?.addEventListener('change', fetchAndRender);
+  conditionSelect?.addEventListener('change', fetchAndRender);
+  maxPriceInput?.addEventListener('input', debouncedSearch);
+  sortSelect?.addEventListener('change', fetchAndRender);
+
+  fetchAndRender();
+}
+
+/* 🔄 EXCHANGE */
+async function initExchangePage() {
+  const grid = document.getElementById('exchangeGrid');
+  const triggerBtn = document.getElementById('btnUploadBookTrigger');
+  const modal = document.getElementById('uploadModal');
+  const form = document.getElementById('uploadBookForm');
+
+  // Drag & drop zone
+  const dropZone = document.getElementById('uploadDropZone');
+  const fileInput = document.getElementById('uploadFileInput');
+  const fileList = document.getElementById('uploadFileList');
+
+  if (dropZone && fileInput) {
+    dropZone.addEventListener('click', () => fileInput.click());
+    dropZone.addEventListener('dragover', (e) => { e.preventDefault(); dropZone.classList.add('dragover'); });
+    dropZone.addEventListener('dragleave', () => dropZone.classList.remove('dragover'));
+    dropZone.addEventListener('drop', (e) => {
+      e.preventDefault();
+      dropZone.classList.remove('dragover');
+      if (e.dataTransfer.files.length) {
+        handleFileSelect(e.dataTransfer.files[0]);
+      }
+    });
+    fileInput.addEventListener('change', () => {
+      if (fileInput.files.length) handleFileSelect(fileInput.files[0]);
+    });
+  }
+
+  function handleFileSelect(file) {
+    if (!file.type.startsWith('image/')) {
+      showToast('Please select an image file', 'warning');
+      return;
+    }
+    if (file.size > 5 * 1024 * 1024) {
+      showToast('File size must be under 5MB', 'warning');
+      return;
+    }
+    if (fileList) {
+      fileList.innerHTML = `
+        <div class="upload-file-item">
+          <i class="fa-solid fa-image" style="color: var(--color-primary);"></i>
+          <span class="file-name">${file.name}</span>
+          <span class="file-size">${(file.size / 1024).toFixed(1)} KB</span>
+          <button onclick="this.closest('.upload-file-item').remove()" style="color: var(--color-danger); cursor: pointer;"><i class="fa-solid fa-xmark"></i></button>
         </div>
-
-        ${myListings.length === 0 ? `
-          <div style="text-align:center; padding:3rem; background:var(--bg-dark); border-radius:var(--radius-md);">
-            <div style="font-size:2.5rem; margin-bottom:1rem;">📚</div>
-            <h4 style="font-family:var(--font-title); font-size:1.3rem; margin-bottom:0.5rem;">No Uploaded Resources Yet</h4>
-            <p style="color:var(--text-muted); font-size:0.88rem; margin-bottom:1.25rem;">Click "+ Upload Resource Wizard" to publish a physical book or PDF lab manual!</p>
-          </div>
-        ` : `
-          <div class="book-grid">${myListings.map(b => createBookCardHTML(b)).join('')}</div>
-        `}
       `;
-
-      document.getElementById('btnOpenUploadWizard').addEventListener('click', () => {
-        setWizardStep(1);
-        openModal(DOM.multiStepUploadModal);
-      });
-    } else if (tabName === 'wishlist') {
-      const wishlistBooks = await window.BookDB.getWishlistBooks();
-      DOM.dashTabContent.innerHTML = `
-        <h3 style="font-family:var(--font-title); font-size:1.6rem; margin-bottom:1rem; color:var(--text-white);">❤️ My Wishlist</h3>
-        ${wishlistBooks.length === 0 ? '<p style="color:var(--text-muted);">Your wishlist is empty. Click the heart ❤️ icon on any book card to save it here!</p>' : `<div class="book-grid">${wishlistBooks.map(b => createBookCardHTML(b, true)).join('')}</div>`}
-      `;
-    } else if (tabName === 'profile') {
-      const user = state.currentUser || { name: 'Ved V. Patel', enrollment: '246400307192', email: 'ved.ce@rcti.ac.in', branch: 'CE', semester: 5, division: 'Div A', academicYear: '2025-2026', role: 'student', whatsapp: '+919876543210' };
-      DOM.dashTabContent.innerHTML = `
-        <div style="max-width:550px;">
-          <h3 style="font-family:var(--font-title); font-size:1.6rem; margin-bottom:1rem; color:var(--text-white);">👤 RCTI Student & Faculty Profile</h3>
-          <div style="font-size:0.95rem; color:var(--text-muted); line-height:2.2;">
-            <div><strong>Full Name:</strong> ${escapeHTML(user.name)}</div>
-            <div><strong>GTU Enrollment Number:</strong> ${escapeHTML(user.enrollment || '246400307192')}</div>
-            <div><strong>Account Role:</strong> <span class="badge-mode ${user.role === 'admin' ? 'sell' : 'buy'}">${(user.role || 'student').toUpperCase()}</span></div>
-            <div><strong>Email:</strong> ${escapeHTML(user.email)}</div>
-            <div><strong>RCTI Department:</strong> ${escapeHTML(user.branch)}</div>
-            <div><strong>GTU Semester:</strong> Sem ${user.semester} (${escapeHTML(user.division || 'Div A')})</div>
-            <div><strong>Academic Year:</strong> ${escapeHTML(user.academicYear || '2025-2026')}</div>
-            <div><strong>WhatsApp Helpline:</strong> ${escapeHTML(user.whatsapp || 'Not provided')}</div>
-            <div><strong>Institute:</strong> R. C. Technical Institute, Ahmedabad (GTU)</div>
-          </div>
-        </div>
-      `;
-    } else {
-      DOM.dashTabContent.innerHTML = `<h3 style="font-family:var(--font-title); font-size:1.5rem; margin-bottom:1rem; color:var(--text-white);">${tabName.toUpperCase()} View</h3><p style="color:var(--text-muted);">Active module record loaded.</p>`;
     }
   }
 
-  function setupEventListeners() {
-    let debounceTimer;
-    DOM.searchInput.addEventListener('input', (e) => {
-      clearTimeout(debounceTimer);
-      debounceTimer = setTimeout(() => {
-        state.filters.query = e.target.value;
-        renderCatalog();
-      }, 250);
-    });
+  triggerBtn?.addEventListener('click', () => modal?.classList.add('active'));
 
-    DOM.categorySelect.addEventListener('change', (e) => {
-      state.filters.category = e.target.value;
-      renderCatalog();
-    });
+  form?.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const submitBtn = form.querySelector('[type="submit"]');
+    submitBtn.classList.add('btn-loading');
 
-    DOM.resourceTypeSelect.addEventListener('change', (e) => {
-      state.filters.resourceType = e.target.value;
-      renderCatalog();
-    });
-
-    DOM.conditionSelect.addEventListener('change', (e) => {
-      state.filters.condition = e.target.value;
-      renderCatalog();
-    });
-
-    DOM.semesterSelect.addEventListener('change', (e) => {
-      state.filters.semester = e.target.value;
-      renderCatalog();
-    });
-
-    DOM.branchSelect.addEventListener('change', (e) => {
-      state.filters.branch = e.target.value;
-      renderCatalog();
-    });
-
-    DOM.modeSelect.addEventListener('change', (e) => {
-      state.filters.mode = e.target.value;
-      renderCatalog();
-    });
-
-    // Contact Seller Delegation
-    document.addEventListener('click', async (e) => {
-      const contactBtn = e.target.closest('.btn-contact-seller-modal');
-      if (contactBtn) {
-        e.stopPropagation();
-        const bookId = contactBtn.dataset.sellerId;
-        const book = await window.BookAPI.getBookById(bookId);
-        if (book) openSellerContactModal(book);
-      }
-    });
-
-    DOM.closeSellerContactModal.addEventListener('click', () => closeModal(DOM.sellerContactModal));
-
-    // WIZARD STEPS
-    document.querySelectorAll('.wizard-choice-box').forEach(box => {
-      box.addEventListener('click', (e) => {
-        document.querySelectorAll('.wizard-choice-box').forEach(b => {
-          b.style.borderColor = 'var(--border-pill)';
-          b.classList.remove('active');
-        });
-        const target = e.currentTarget;
-        target.style.borderColor = 'var(--text-white)';
-        target.classList.add('active');
-        state.wizard.category = target.dataset.choiceCategory;
-      });
-    });
-
-    document.querySelectorAll('.wizard-choice-mode').forEach(box => {
-      box.addEventListener('click', (e) => {
-        document.querySelectorAll('.wizard-choice-mode').forEach(b => {
-          b.style.borderColor = 'var(--border-pill)';
-          b.classList.remove('active');
-        });
-        const target = e.currentTarget;
-        target.style.borderColor = 'var(--text-white)';
-        target.classList.add('active');
-        state.wizard.mode = target.dataset.choiceMode;
-      });
-    });
-
-    DOM.btnStep1Next.addEventListener('click', () => setWizardStep(2));
-    DOM.btnStep2Back.addEventListener('click', () => setWizardStep(1));
-    DOM.btnStep2Next.addEventListener('click', () => setWizardStep(3));
-    DOM.btnStep3Back.addEventListener('click', () => setWizardStep(2));
-    DOM.btnStep3Next.addEventListener('click', () => setWizardStep(4));
-    DOM.btnStep4Back.addEventListener('click', () => setWizardStep(3));
-    DOM.closeUploadWizardModal.addEventListener('click', () => closeModal(DOM.multiStepUploadModal));
-
-    // WIZARD FORM SUBMIT
-    DOM.wizardForm.addEventListener('submit', async (e) => {
-      e.preventDefault();
-      const mode = state.wizard.mode;
-      const priceOrSwap = document.getElementById('wizPriceOrSwap').value;
-
-      const bookData = {
-        category: state.wizard.category,
-        title: document.getElementById('wizTitle').value,
-        subject: document.getElementById('wizSubject').value,
-        gtuCode: document.getElementById('wizGtuCode').value,
-        branch: document.getElementById('wizBranch').value,
-        semester: document.getElementById('wizSemester').value,
-        condition: document.getElementById('wizCondition').value,
-        author: document.getElementById('wizAuthor').value,
-        resourceType: DOM.wizardResTypeSelect.value,
-        mode: mode,
-        price: mode === 'sell' ? (parseFloat(priceOrSwap) || 150) : 0,
-        exchangeFor: mode === 'exchange' ? priceOrSwap : '',
-        description: document.getElementById('wizDescription').value || 'GTU resource listed on BookBridge.',
-        sellerName: state.currentUser?.name || 'RCTI Student',
-        sellerEmail: state.currentUser?.email || 'student@rcti.ac.in'
-      };
-
-      await window.BookAPI.addBook(bookData);
-      closeModal(DOM.multiStepUploadModal);
-      DOM.wizardForm.reset();
-      showToast('✅ Upload Successful! Resource published to My Uploads & Marketplace.', 'success');
-      await renderCatalog();
-      await renderDepartmentHub();
-      await renderDashboardTab('listings');
-    });
-
-    // EDIT LISTING DELEGATION
-    document.addEventListener('click', async (e) => {
-      const editBtn = e.target.closest('.btn-my-edit');
-      if (editBtn) {
-        e.stopPropagation();
-        const bookId = editBtn.dataset.editId;
-        const book = await window.BookAPI.getBookById(bookId);
-        if (book) {
-          document.getElementById('editBookId').value = book.id;
-          document.getElementById('editTitle').value = book.title;
-          document.getElementById('editCondition').value = book.condition || 'Good';
-          document.getElementById('editPrice').value = book.price || 0;
-          document.getElementById('editDescription').value = book.description || '';
-          openModal(DOM.editResourceModal);
-        }
-      }
-    });
-
-    DOM.closeEditResourceModal.addEventListener('click', () => closeModal(DOM.editResourceModal));
-
-    DOM.editResourceForm.addEventListener('submit', async (e) => {
-      e.preventDefault();
-      const bookId = document.getElementById('editBookId').value;
-      const updatedFields = {
-        title: document.getElementById('editTitle').value,
-        condition: document.getElementById('editCondition').value,
-        price: parseFloat(document.getElementById('editPrice').value) || 0,
-        description: document.getElementById('editDescription').value
-      };
-
-      await window.BookDB.updateBook(bookId, updatedFields);
-      closeModal(DOM.editResourceModal);
-      showToast('✨ Resource updated! Changes synced to public marketplace.', 'success');
-      await renderCatalog();
-      await renderDepartmentHub();
-      await renderDashboardTab('listings');
-    });
-
-    // MARK SOLD / AVAILABLE DELEGATION
-    document.addEventListener('click', async (e) => {
-      const toggleBtn = e.target.closest('.btn-my-toggle-sold');
-      if (toggleBtn) {
-        e.stopPropagation();
-        const bookId = toggleBtn.dataset.toggleSoldId;
-        const book = await window.BookAPI.getBookById(bookId);
-        if (book) {
-          const newStatus = book.status === 'Sold' ? 'Available' : 'Sold';
-          await window.BookDB.updateBookStatus(bookId, newStatus);
-          showToast(`Status updated to ${newStatus}!`, 'info');
-          await renderCatalog();
-          await renderDepartmentHub();
-          await renderDashboardTab('listings');
-        }
-      }
-    });
-
-    // Department Hub Listeners
-    DOM.hubBranchSelect.addEventListener('change', renderDepartmentHub);
-    DOM.hubSemesterSelect.addEventListener('change', renderDepartmentHub);
-
-    DOM.navDeptHub.addEventListener('click', () => DOM.departmentHub.scrollIntoView({ behavior: 'smooth' }));
-    DOM.navCommunity.addEventListener('click', () => document.getElementById('collegeCommunity').scrollIntoView({ behavior: 'smooth' }));
-
-    // QR Share Click Delegation
-    document.addEventListener('click', (e) => {
-      const qrBtn = e.target.closest('.btn-qr-share');
-      if (qrBtn) {
-        e.stopPropagation();
-        openQrModal(qrBtn.dataset.shareTitle);
-      }
-    });
-
-    // PDF Preview Click Delegation
-    document.addEventListener('click', (e) => {
-      const pdfBtn = e.target.closest('.btn-pdf-preview');
-      if (pdfBtn) {
-        e.stopPropagation();
-        openPdfModal(pdfBtn.dataset.pdfTitle, '');
-      }
-    });
-
-    DOM.closePdfModal.addEventListener('click', () => closeModal(DOM.pdfModal));
-    DOM.closeQrModal.addEventListener('click', () => closeModal(DOM.qrModal));
-
-    // Admin Delete Book
-    document.addEventListener('click', async (e) => {
-      const delBtn = e.target.closest('.btn-admin-delete-book');
-      if (delBtn) {
-        e.stopPropagation();
-        const bookId = delBtn.dataset.deleteBookId;
-        if (confirm('Admin: Delete this book listing?')) {
-          await window.BookAPI.deleteBook(bookId);
-          showToast('Book listing deleted by Admin', 'info');
-          await renderCatalog();
-          await renderDepartmentHub();
-          await render3DHeroTrack();
-          if (state.currentUser?.role === 'admin') await renderAdminPanel();
-        }
-      }
-    });
-
-    // Wishlist Click Delegation
-    document.addEventListener('click', async (e) => {
-      const heartBtn = e.target.closest('.btn-wishlist-heart');
-      if (heartBtn) {
-        e.stopPropagation();
-        const bookId = heartBtn.dataset.wishlistId;
-        const added = await window.BookDB.toggleWishlist(bookId);
-        showToast(added ? 'Added to Wishlist ❤️' : 'Removed from Wishlist', 'info');
-        await renderCatalog();
-        await renderDepartmentHub();
-        await renderAIRecommendations();
-        if (state.currentDashTab === 'wishlist') await renderDashboardTab('wishlist');
-      }
-    });
-
-    // Sidebar Nav Delegation
-    document.querySelectorAll('#profileSidebarNav li').forEach(tab => {
-      tab.addEventListener('click', (e) => {
-        const tabName = e.target.dataset.dashTab;
-        if (tabName) renderDashboardTab(tabName);
-      });
-    });
-
-    document.getElementById('sidebarLogout').addEventListener('click', async () => {
-      if (confirm('Sign out of BookBridge?')) {
-        await window.BookAPI.logout();
-        await updateAuthUI();
-        showToast('Signed out of BookBridge', 'info');
-      }
-    });
-
-    DOM.navInfo.addEventListener('click', () => openModal(DOM.projectInfoModal));
-    DOM.closeProjectInfoModal.addEventListener('click', () => closeModal(DOM.projectInfoModal));
-
-    DOM.navAdmin.addEventListener('click', () => DOM.adminPanel.scrollIntoView({ behavior: 'smooth' }));
-
-    // Live Chat Form Submit
-    DOM.chatForm.addEventListener('submit', async (e) => {
-      e.preventDefault();
-      const text = DOM.chatInput.value.trim();
-      if (!text || !state.chatTargetEmail) return;
-
-      await window.BookAPI.sendMessage(state.chatTargetEmail, text, state.chatBookTitle);
-      DOM.chatInput.value = '';
-      await renderChatMessages();
-    });
-
-    DOM.closeChatModal.addEventListener('click', () => closeModal(DOM.chatModal));
-
-    // Review Form Submit
-    DOM.reviewForm.addEventListener('submit', async (e) => {
-      e.preventDefault();
-      const email = DOM.reviewSellerEmail.value;
-      const rating = DOM.reviewRating.value;
-      const comment = DOM.reviewComment.value;
-
-      await window.BookAPI.addReview(email, rating, comment);
-      closeModal(DOM.reviewModal);
-      DOM.reviewForm.reset();
-      showToast(`⭐ ${rating}-Star review submitted for seller!`, 'success');
-      await renderCatalog();
-    });
-
-    DOM.closeReviewModal.addEventListener('click', () => closeModal(DOM.reviewModal));
-
-    // CTAs
-    document.getElementById('ctaBrowseBtn').addEventListener('click', () => document.getElementById('marketplace').scrollIntoView({ behavior: 'smooth' }));
-    document.getElementById('ctaSellBtn').addEventListener('click', () => {
-      setWizardStep(1);
-      openModal(DOM.multiStepUploadModal);
-    });
-    document.getElementById('ctaExchangeBtn').addEventListener('click', () => {
-      state.filters.mode = 'exchange';
-      DOM.modeSelect.value = 'exchange';
-      document.getElementById('marketplace').scrollIntoView({ behavior: 'smooth' });
-      renderCatalog();
-    });
-
-    DOM.contactForm.addEventListener('submit', (e) => {
-      e.preventDefault();
-      showToast('Thank you! Your message has been sent to RCTI helpline.', 'success');
-      DOM.contactForm.reset();
-    });
-
-    // Genre Pills Bar
-    DOM.genrePillsBar.addEventListener('click', (e) => {
-      const pill = e.target.closest('.genre-pill');
-      if (!pill) return;
-
-      document.querySelectorAll('.genre-pill').forEach(p => p.classList.remove('active'));
-      pill.classList.add('active');
-      state.filters.genre = pill.dataset.genre;
-      renderCatalog();
-    });
-
-    DOM.bookGrid.addEventListener('click', (e) => {
-      const card = e.target.closest('.book-card');
-      if (card && !e.target.closest('button') && !e.target.closest('a')) openActionModal(card.dataset.id);
-    });
-
-    // Auth
-    DOM.userAuthBtn.addEventListener('click', async () => {
-      if (state.currentUser) {
-        if (confirm(`Signed in as ${state.currentUser.name} (${state.currentUser.email}). Sign out?`)) {
-          await window.BookAPI.logout();
-          await updateAuthUI();
-          showToast('Signed out of BookBridge', 'info');
-        }
-      } else {
-        openModal(DOM.authModal);
-      }
-    });
-
-    DOM.closeAuthModal.addEventListener('click', () => closeModal(DOM.authModal));
-
-    DOM.tabLogin.addEventListener('click', () => {
-      DOM.tabLogin.style.color = 'var(--text-white)';
-      DOM.tabRegister.style.color = 'var(--text-muted)';
-      DOM.loginForm.style.display = 'block';
-      DOM.registerForm.style.display = 'none';
-    });
-
-    DOM.tabRegister.addEventListener('click', () => {
-      DOM.tabRegister.style.color = 'var(--text-white)';
-      DOM.tabLogin.style.color = 'var(--text-muted)';
-      DOM.registerForm.style.display = 'block';
-      DOM.loginForm.style.display = 'none';
-    });
-
-    DOM.loginForm.addEventListener('submit', async (e) => {
-      e.preventDefault();
-      const email = document.getElementById('loginEmail').value;
-      const pass = document.getElementById('loginPassword').value;
-
-      const user = await window.BookAPI.login(email, pass);
-      closeModal(DOM.authModal);
-      DOM.loginForm.reset();
-      await updateAuthUI();
-      await renderAIRecommendations();
-      showToast(`Welcome back, ${user.name}!`, 'success');
-    });
-
-    DOM.registerForm.addEventListener('submit', async (e) => {
-      e.preventDefault();
-      const userData = {
-        name: document.getElementById('regName').value,
-        enrollment: document.getElementById('regEnrollment').value,
-        email: document.getElementById('regEmail').value,
-        role: document.getElementById('regRole').value,
-        branch: document.getElementById('regBranch').value,
-        semester: document.getElementById('regSemester').value,
-        division: document.getElementById('regDivision').value,
-        academicYear: document.getElementById('regAcademicYear').value,
-        whatsapp: document.getElementById('regWhatsapp').value
-      };
-
-      const user = await window.BookAPI.register(userData);
-      closeModal(DOM.authModal);
-      DOM.registerForm.reset();
-      await updateAuthUI();
-      await renderAIRecommendations();
-      showToast(`RCTI Account registered for ${user.name} (${user.enrollment})!`, 'success');
-    });
-
-    DOM.listBookModalBtn.addEventListener('click', () => {
-      if (!state.currentUser) {
-        showToast('Please sign in with your RCTI account to upload resources', 'info');
-        openModal(DOM.authModal);
-      } else {
-        setWizardStep(1);
-        openModal(DOM.multiStepUploadModal);
-      }
-    });
-
-    DOM.closeActionModal.addEventListener('click', () => closeModal(DOM.actionModal));
-    DOM.actionForm.addEventListener('submit', handleActionSubmit);
-  }
-
-  async function openActionModal(bookId) {
-    const book = await window.BookAPI.getBookById(bookId);
-    if (!book) return;
-
-    state.selectedBook = book;
-    DOM.actionBookId.value = book.id;
-
-    const cleanWhatsapp = (book.seller?.whatsapp || '').replace(/[^0-9+]/g, '');
-
-    DOM.btnLiveChatDirect.onclick = () => {
-      closeModal(DOM.actionModal);
-      openChatModal(book.seller?.email || 'seller@rcti.ac.in', book.title);
+    const newBook = {
+      title: document.getElementById('uploadTitle').value.trim(),
+      author: document.getElementById('uploadAuthor').value.trim(),
+      branch: document.getElementById('uploadBranch').value,
+      condition: document.getElementById('uploadCondition')?.value || 'Good',
+      price: parseFloat(document.getElementById('uploadPrice').value) || 0,
+      mode: 'exchange',
+      category: 'physical'
     };
 
-    if (cleanWhatsapp) {
-      DOM.btnWhatsappDirect.style.display = 'inline-flex';
-      DOM.btnWhatsappDirect.onclick = () => {
-        window.open(`https://wa.me/${cleanWhatsapp}?text=Hi!%20I'm%20an%20RCTI%20student%20interested%20in%20your%20GTU%20resource%20${encodeURIComponent(book.title)}%20on%20BookBridge.`, '_blank');
-      };
-    } else {
-      DOM.btnWhatsappDirect.style.display = 'none';
-    }
+    const saved = await window.BookAPI.addBook(newBook);
+    submitBtn.classList.remove('btn-loading');
+    showToast(`"${saved?.title || newBook.title}" uploaded successfully!`, 'success');
+    modal?.classList.remove('active');
+    form.reset();
+    if (fileList) fileList.innerHTML = '';
+    fetchAndRender();
+  });
 
-    if (book.mode === 'exchange') {
-      DOM.actionTitle.textContent = '🔄 Propose GTU Resource Swap';
-      DOM.actionSubtitle.textContent = `Swap offer for "${book.title}" (${book.branch} GTU Sem ${book.semester})`;
-      DOM.actionDetailsLabel.textContent = 'Which GTU resource do you want to offer in exchange?';
-      DOM.actionSubmitBtn.textContent = 'Propose Swap';
-    } else if (book.mode === 'donate') {
-      DOM.actionTitle.textContent = book.resourceType === 'lab_manual' ? '📋 Download / Claim Lab Manual' : '🎁 Claim Free Resource';
-      DOM.actionSubtitle.textContent = `Claiming free resource "${book.title}"`;
-      DOM.actionDetailsLabel.textContent = 'RCTI pickup location / Note to uploader';
-      DOM.actionSubmitBtn.textContent = 'Confirm Claim & Download';
-    } else {
-      DOM.actionTitle.textContent = '🛒 Purchase GTU Resource';
-      DOM.actionSubtitle.textContent = `Buying "${book.title}" for ₹${parseFloat(book.price || 0).toFixed(0)}`;
-      DOM.actionDetailsLabel.textContent = 'RCTI Campus Meeting Location';
-      DOM.actionSubmitBtn.textContent = 'Confirm Purchase';
-    }
-
-    openModal(DOM.actionModal);
+  async function fetchAndRender() {
+    const books = await window.BookAPI.getBooks();
+    await renderBooksGrid(grid, books, 'Exchange');
   }
 
-  async function handleActionSubmit(e) {
+  fetchAndRender();
+}
+
+/* 🎁 DONATE */
+async function initDonatePage() {
+  const grid = document.getElementById('donateBooksGrid');
+  const books = await window.BookAPI.getBooks();
+  const donated = books.filter(b => b.price === 0 || b.mode === 'donate');
+  await renderBooksGrid(grid, donated.length > 0 ? donated : books, 'Claim Free');
+}
+
+/* 📬 CONTACT */
+function initContactPage() {
+  const form = document.getElementById('contactPageForm');
+  form?.addEventListener('submit', async (e) => {
     e.preventDefault();
-    if (!state.selectedBook) return;
+    const name = document.getElementById('contactName').value;
+    const email = document.getElementById('contactEmail').value;
+    const text = document.getElementById('contactMessage').value;
 
-    const book = state.selectedBook;
-    const name = document.getElementById('actionName').value;
-    const note = document.getElementById('actionNote').value;
+    const submitBtn = form.querySelector('[type="submit"]');
+    submitBtn.classList.add('btn-loading');
 
-    if (book.mode === 'exchange') {
-      await window.BookAPI.proposeExchange({
-        targetBookId: book.id,
-        targetBookTitle: book.title,
-        offeredBookTitle: note || 'Offered GTU Resource',
-        proposerName: name
-      });
-      showToast(`🔄 Swap proposal sent to ${book.seller?.name || 'owner'}!`, 'success');
-    } else if (book.mode === 'donate') {
-      await window.BookAPI.claimDonation(book.id, { name, address: note });
-      showToast(`🎁 Claimed "${book.title}"!`, 'success');
+    await window.BookAPI.sendMessage(email, text, 'Contact Support');
+
+    submitBtn.classList.remove('btn-loading');
+    showToast(`Thank you, ${name}! Your message has been sent.`, 'success');
+    form.reset();
+  });
+}
+
+/* 🔑 LOGIN */
+function initLoginPage() {
+  const form = document.getElementById('dedicatedLoginForm');
+  form?.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const email = document.getElementById('loginEmail').value.trim();
+    const password = document.getElementById('loginPassword').value.trim();
+    const submitBtn = document.getElementById('loginSubmitBtn');
+
+    // Basic validation
+    let valid = true;
+    if (!email) { document.getElementById('loginEmail').closest('.form-group').classList.add('error'); valid = false; }
+    if (!password) { document.getElementById('loginPassword').closest('.form-group').classList.add('error'); valid = false; }
+    if (!valid) return;
+
+    submitBtn.classList.add('btn-loading');
+    const user = await window.BookAPI.login(email, password);
+    submitBtn.classList.remove('btn-loading');
+
+    if (user) {
+      showToast(`Welcome back, ${user.name}!`, 'success');
+      setTimeout(() => window.location.href = '/browse.html', 1000);
     } else {
-      await window.BookAPI.buyBook(book.id, { name, address: note });
-      showToast(`🛍️ Purchased "${book.title}"!`, 'success');
+      showToast('Login failed. Check your credentials.', 'danger');
+    }
+  });
+
+  // Clear error on focus
+  document.querySelectorAll('#dedicatedLoginForm .form-input').forEach(input => {
+    input.addEventListener('focus', () => input.closest('.form-group').classList.remove('error'));
+  });
+}
+
+/* 📝 REGISTER */
+function initRegisterPage() {
+  const form = document.getElementById('dedicatedRegisterForm');
+  const passwordInput = document.getElementById('regPassword');
+
+  // Password strength meter
+  if (passwordInput) {
+    passwordInput.addEventListener('input', () => {
+      const val = passwordInput.value;
+      const bars = [document.getElementById('str1'), document.getElementById('str2'), document.getElementById('str3'), document.getElementById('str4')];
+      const text = document.getElementById('passwordStrengthText');
+      let strength = 0;
+
+      if (val.length >= 4) strength++;
+      if (val.length >= 8) strength++;
+      if (/[A-Z]/.test(val) && /[0-9]/.test(val)) strength++;
+      if (/[^a-zA-Z0-9]/.test(val) && val.length >= 10) strength++;
+
+      const levels = ['', 'weak', 'medium', 'medium', 'strong'];
+      const labels = ['', 'Weak password', 'Fair password', 'Good password', 'Strong password'];
+      const colors = ['', 'var(--color-danger)', 'var(--color-warning)', 'var(--color-warning)', 'var(--color-success)'];
+
+      bars.forEach((bar, i) => {
+        bar.className = 'strength-bar';
+        if (i < strength) bar.classList.add(levels[strength]);
+      });
+      if (text) {
+        text.textContent = labels[strength];
+        text.style.color = colors[strength];
+      }
+    });
+  }
+
+  form?.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const submitBtn = document.getElementById('registerSubmitBtn');
+
+    const userData = {
+      name: document.getElementById('regName').value.trim(),
+      enrollment: document.getElementById('regEnrollment').value.trim(),
+      branch: document.getElementById('regBranch').value,
+      email: document.getElementById('regEmail').value.trim(),
+      password: document.getElementById('regPassword').value.trim()
+    };
+
+    // Validation
+    let valid = true;
+    ['regName', 'regEnrollment', 'regEmail', 'regPassword'].forEach(id => {
+      const input = document.getElementById(id);
+      if (!input.value.trim()) {
+        input.closest('.form-group')?.classList.add('error');
+        valid = false;
+      }
+    });
+
+    if (!document.getElementById('regTerms')?.checked) {
+      showToast('Please accept the Terms of Service', 'warning');
+      return;
     }
 
-    closeModal(DOM.actionModal);
-    DOM.actionForm.reset();
+    if (!valid) return;
 
-    DOM.reviewSellerEmail.value = book.seller?.email || 'seller@rcti.ac.in';
-    DOM.reviewSubtitle.textContent = `Rate seller ${book.seller?.name || 'Student'} for "${book.title}"`;
-    openModal(DOM.reviewModal);
+    submitBtn.classList.add('btn-loading');
+    const user = await window.BookAPI.register(userData);
+    submitBtn.classList.remove('btn-loading');
 
-    await render3DHeroTrack();
-    await renderCatalog();
-    await renderDepartmentHub();
+    if (user) {
+      showToast(`Welcome, ${user.name}! Account created.`, 'success');
+      setTimeout(() => window.location.href = '/login.html', 1200);
+    } else {
+      showToast('Registration failed. Please try again.', 'danger');
+    }
+  });
+
+  // Clear error on focus
+  document.querySelectorAll('#dedicatedRegisterForm .form-input').forEach(input => {
+    input.addEventListener('focus', () => input.closest('.form-group')?.classList.remove('error'));
+  });
+}
+
+/* 🛡️ ADMIN */
+async function initAdminPage() {
+  const tbody = document.getElementById('adminBooksTableBody');
+  const addBtn = document.getElementById('btnAdminAddBook');
+
+  if (addBtn) {
+    addBtn.addEventListener('click', async () => {
+      const title = prompt('Enter Book Title:');
+      if (!title) return;
+      const author = prompt('Author Name:') || 'Faculty';
+      const branch = prompt('Department (CE/IT/EE/ME/Civil):') || 'CE';
+
+      await window.BookAPI.addBook({ title, author, branch, category: 'official', price: 0 });
+      showToast(`"${title}" added to catalog`, 'success');
+      fetchAdmin();
+    });
   }
 
-  function openModal(el) { el.classList.add('active'); }
-  function closeModal(el) { el.classList.remove('active'); }
+  async function fetchAdmin() {
+    const stats = await window.BookAPI.getAdminStats();
+    const els = { adminStatUsers: stats.totalUsers, adminStatBooks: stats.totalListings, adminStatSwaps: stats.activeSwaps || 0, adminStatDonations: stats.freeDonations || 0 };
+    Object.entries(els).forEach(([id, val]) => {
+      const el = document.getElementById(id);
+      if (el) { el.dataset.count = val; el.textContent = val.toLocaleString('en-IN'); }
+    });
 
-  function showToast(msg, type = 'info') {
-    const toast = document.createElement('div');
-    toast.style.cssText = 'background:var(--bg-card); border:1px solid var(--text-white); padding:0.8rem 1.4rem; border-radius:var(--radius-full); box-shadow:0 10px 30px rgba(0,0,0,0.5); font-size:0.88rem; color:var(--text-white);';
-    toast.textContent = msg;
-    DOM.toastContainer.appendChild(toast);
-    setTimeout(() => {
-      toast.style.opacity = '0';
-      setTimeout(() => toast.remove(), 300);
-    }, 3500);
+    if (!tbody) return;
+    const books = await window.BookAPI.getBooks();
+    tbody.innerHTML = books.map((b, i) => `
+      <tr>
+        <td><span style="color: var(--color-primary); font-weight: 600;">${b.gtuCode || b.id?.substring(0, 12) || 'N/A'}</span></td>
+        <td><strong>${b.title}</strong></td>
+        <td><span class="badge badge-primary">${b.branch || 'CE'}</span></td>
+        <td>${b.price > 0 ? '₹' + b.price : 'Free / Exchange'}</td>
+        <td><span class="badge badge-success">Active</span></td>
+        <td style="text-align: right;">
+          <button onclick="handleDeleteAdminBook('${b.id}')" class="btn btn-danger btn-sm" style="height: 32px; padding: 0 12px; font-size: 12px;">Delete</button>
+        </td>
+      </tr>
+    `).join('');
   }
 
-  function escapeHTML(str) {
-    return String(str || '').replace(/[&<>"']/g, m => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[m]));
-  }
+  fetchAdmin();
+}
 
-  initApp();
-});
+window.handleDeleteAdminBook = async function(id) {
+  if (confirm('Delete this book listing?')) {
+    await window.BookAPI.deleteBook(id);
+    showToast('Listing removed', 'success');
+    initAdminPage();
+  }
+};
+
+/* 📊 DASHBOARD */
+async function initDashboardPage() {
+  // Placeholder for user dashboard
+}

@@ -1,0 +1,213 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>My Dashboard – BookBridge</title>
+  <meta name="description" content="Manage your books, wishlist, messages, and account settings on BookBridge.">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
+  <link rel="stylesheet" href="/style.css">
+</head>
+<body>
+  <a href="#main-content" class="skip-link">Skip to main content</a>
+
+  <header class="navbar" id="navbar">
+    <div class="navbar-inner">
+      <a href="/index.html" class="brand"><div class="brand-icon">📚</div><div><div class="brand-name">BookBridge</div><div class="brand-tagline">Bridge Books. Build Minds.</div></div></a>
+      <nav class="nav-links">
+        <a href="/index.html" class="nav-link">Home</a><a href="/browse.html" class="nav-link">Browse</a><a href="/exchange.html" class="nav-link">Exchange</a><a href="/donate.html" class="nav-link">Donate</a><a href="/about.html" class="nav-link">About</a><a href="/contact.html" class="nav-link">Contact</a>
+      </nav>
+      <div class="nav-actions" id="navLoginBtn"><a href="/login.html" class="btn btn-ghost">Login</a><a href="/register.html" class="btn btn-primary">Get Started</a></div>
+      <button class="mobile-toggle" id="mobileMenuToggle"><i class="fa-solid fa-bars"></i></button>
+    </div>
+  </header>
+  <div class="mobile-drawer" id="mobileNavDrawer">
+    <div class="drawer-links"><a href="/index.html" class="drawer-link">Home <i class="fa-solid fa-chevron-right"></i></a><a href="/browse.html" class="drawer-link">Browse <i class="fa-solid fa-chevron-right"></i></a><a href="/exchange.html" class="drawer-link">Exchange <i class="fa-solid fa-chevron-right"></i></a><a href="/donate.html" class="drawer-link">Donate <i class="fa-solid fa-chevron-right"></i></a><a href="/about.html" class="drawer-link">About <i class="fa-solid fa-chevron-right"></i></a><a href="/contact.html" class="drawer-link">Contact <i class="fa-solid fa-chevron-right"></i></a></div>
+    <div class="drawer-actions" id="mobileDrawerActions"><a href="/login.html" class="btn btn-secondary btn-block">Login</a></div>
+  </div>
+
+  <main id="main-content">
+    <div class="dashboard">
+      <aside class="sidebar">
+        <div class="sidebar-section-title">My Account</div>
+        <nav class="sidebar-nav">
+          <a href="#" class="sidebar-link active" data-tab="overview"><i class="fa-solid fa-chart-pie"></i> Overview</a>
+          <a href="#" class="sidebar-link" data-tab="my-books"><i class="fa-solid fa-book"></i> My Books</a>
+          <a href="#" class="sidebar-link" data-tab="wishlist"><i class="fa-solid fa-heart"></i> Wishlist</a>
+          <a href="#" class="sidebar-link" data-tab="messages"><i class="fa-solid fa-envelope"></i> Messages</a>
+        </nav>
+        <div class="sidebar-section-title">Settings</div>
+        <nav class="sidebar-nav">
+          <a href="#" class="sidebar-link" data-tab="profile"><i class="fa-solid fa-user"></i> Profile</a>
+          <a href="#" class="sidebar-link" data-tab="notifications"><i class="fa-solid fa-bell"></i> Notifications</a>
+        </nav>
+      </aside>
+
+      <div class="dashboard-content">
+        <!-- OVERVIEW TAB -->
+        <div id="tab-overview" class="tab-content active">
+          <h2>Dashboard Overview</h2>
+          <p class="text-small" style="margin-bottom: 24px;" id="dashboardGreeting">Welcome back!</p>
+
+          <div class="grid-4" style="margin-bottom: 32px;">
+            <div class="stat-card">
+              <div class="stat-icon" style="background:var(--color-primary-light);color:var(--color-primary);"><i class="fa-solid fa-book"></i></div>
+              <div class="stat-value" id="dashMyBooks">0</div>
+              <div class="stat-label">My Books</div>
+            </div>
+            <div class="stat-card">
+              <div class="stat-icon" style="background:var(--color-danger-light);color:var(--color-danger);"><i class="fa-solid fa-heart"></i></div>
+              <div class="stat-value" id="dashWishlist">0</div>
+              <div class="stat-label">Wishlisted</div>
+            </div>
+            <div class="stat-card">
+              <div class="stat-icon" style="background:var(--color-info-light);color:var(--color-info);"><i class="fa-solid fa-arrows-rotate"></i></div>
+              <div class="stat-value" id="dashExchanges">0</div>
+              <div class="stat-label">Exchanges</div>
+            </div>
+            <div class="stat-card">
+              <div class="stat-icon" style="background:var(--color-success-light);color:var(--color-success);"><i class="fa-solid fa-gift"></i></div>
+              <div class="stat-value" id="dashDonations">0</div>
+              <div class="stat-label">Donations</div>
+            </div>
+          </div>
+
+          <div class="card" style="padding: 24px;">
+            <h3 style="margin-bottom: 16px;">Quick Actions</h3>
+            <div style="display: flex; gap: 12px; flex-wrap: wrap;">
+              <a href="/exchange.html" class="btn btn-primary"><i class="fa-solid fa-plus"></i> Upload Book</a>
+              <a href="/browse.html" class="btn btn-secondary"><i class="fa-solid fa-search"></i> Browse Books</a>
+              <a href="/donate.html" class="btn btn-ghost" style="border: 1px solid var(--color-border);"><i class="fa-solid fa-gift"></i> Donate</a>
+            </div>
+          </div>
+        </div>
+
+        <!-- MY BOOKS TAB -->
+        <div id="tab-my-books" class="tab-content">
+          <h2>My Books</h2>
+          <p class="text-small" style="margin-bottom: 24px;">Books you've listed on BookBridge.</p>
+          <div class="grid-auto" id="dashMyBooksGrid">
+            <div class="empty-state">
+              <div class="empty-state-icon">📖</div>
+              <h3>No Books Listed</h3>
+              <p>Upload your first book to start exchanging with students.</p>
+              <a href="/exchange.html" class="btn btn-primary btn-sm"><i class="fa-solid fa-plus"></i> Upload Book</a>
+            </div>
+          </div>
+        </div>
+
+        <!-- WISHLIST TAB -->
+        <div id="tab-wishlist" class="tab-content">
+          <h2>My Wishlist</h2>
+          <p class="text-small" style="margin-bottom: 24px;">Books you've saved for later.</p>
+          <div class="grid-auto" id="dashWishlistGrid">
+            <div class="empty-state">
+              <div class="empty-state-icon">❤️</div>
+              <h3>Wishlist is Empty</h3>
+              <p>Browse books and tap the heart icon to save them here.</p>
+              <a href="/browse.html" class="btn btn-primary btn-sm"><i class="fa-solid fa-search"></i> Browse Books</a>
+            </div>
+          </div>
+        </div>
+
+        <!-- MESSAGES TAB -->
+        <div id="tab-messages" class="tab-content">
+          <h2>Messages</h2>
+          <p class="text-small" style="margin-bottom: 24px;">Your conversations with other students.</p>
+          <div class="empty-state">
+            <div class="empty-state-icon">💬</div>
+            <h3>No Messages Yet</h3>
+            <p>Start a conversation by contacting a book seller.</p>
+          </div>
+        </div>
+
+        <!-- PROFILE TAB -->
+        <div id="tab-profile" class="tab-content">
+          <h2>My Profile</h2>
+          <p class="text-small" style="margin-bottom: 24px;">Update your personal information.</p>
+          <div class="card" style="max-width: 500px; padding: 28px;" id="profileCard">
+            <p style="text-align: center; color: var(--color-gray);">Login to view your profile.</p>
+          </div>
+        </div>
+
+        <!-- NOTIFICATIONS TAB -->
+        <div id="tab-notifications" class="tab-content">
+          <h2>Notifications</h2>
+          <p class="text-small" style="margin-bottom: 24px;">Stay updated on your book activities.</p>
+          <div class="empty-state">
+            <div class="empty-state-icon">🔔</div>
+            <h3>No Notifications</h3>
+            <p>You'll receive notifications when someone is interested in your books.</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </main>
+
+  <div class="toast-container" id="toastContainer"></div>
+  <div class="modal-overlay" id="bookDetailsModal"><div class="modal-card" style="max-width:560px;"><div class="modal-header"><h3 id="modalBookTitle">Book Details</h3><button class="modal-close" id="closeBookDetailsModal"><i class="fa-solid fa-xmark"></i></button></div><div id="modalBookBody"></div><div style="display:flex;gap:10px;flex-wrap:wrap;margin-top:20px;"><a id="btnModalWhatsapp" target="_blank" class="btn btn-primary" style="flex:1;text-decoration:none;background:#25D366;border-color:#25D366;"><i class="fa-brands fa-whatsapp"></i> WhatsApp</a><button id="btnModalActionConfirm" class="btn btn-brown" style="flex:1;">Confirm</button></div></div></div>
+
+  <script src="/js/database.js"></script>
+  <script src="/js/api.js"></script>
+  <script src="/js/app.js"></script>
+  <script>
+    // Dashboard tab switching
+    document.addEventListener('DOMContentLoaded', async () => {
+      const sidebarLinks = document.querySelectorAll('.sidebar-link[data-tab]');
+      const tabContents = document.querySelectorAll('.tab-content');
+
+      sidebarLinks.forEach(link => {
+        link.addEventListener('click', (e) => {
+          e.preventDefault();
+          const tabId = link.dataset.tab;
+
+          sidebarLinks.forEach(l => l.classList.remove('active'));
+          link.classList.add('active');
+
+          tabContents.forEach(t => t.classList.remove('active'));
+          document.getElementById('tab-' + tabId)?.classList.add('active');
+        });
+      });
+
+      // Populate dashboard data
+      const user = await window.BookAPI.getCurrentUser();
+      const greeting = document.getElementById('dashboardGreeting');
+      const profileCard = document.getElementById('profileCard');
+
+      if (user) {
+        if (greeting) greeting.textContent = `Welcome back, ${user.name}!`;
+        if (profileCard) {
+          profileCard.innerHTML = `
+            <div style="text-align: center; margin-bottom: 20px;">
+              <div class="avatar avatar-xl avatar-primary" style="margin: 0 auto 12px;">${user.name.split(' ').map(w=>w[0]).join('').substring(0,2)}</div>
+              <h3>${user.name}</h3>
+              <p class="text-small">${user.email}</p>
+            </div>
+            <div style="display: grid; gap: 12px; font-size: 14px;">
+              <div class="flex-between"><span style="color: var(--color-gray);">Enrollment</span><strong>${user.enrollment || 'N/A'}</strong></div>
+              <div class="flex-between"><span style="color: var(--color-gray);">Department</span><span class="badge badge-primary">${user.branch || 'CE'}</span></div>
+              <div class="flex-between"><span style="color: var(--color-gray);">Role</span><strong>${(user.role || 'student').toUpperCase()}</strong></div>
+              <div class="flex-between"><span style="color: var(--color-gray);">Joined</span><strong>${new Date(user.createdAt).toLocaleDateString()}</strong></div>
+            </div>
+          `;
+        }
+
+        // Load wishlist
+        const wishBooks = await window.BookAPI.getWishlistBooks();
+        document.getElementById('dashWishlist').textContent = wishBooks.length;
+        if (wishBooks.length > 0) {
+          await renderBooksGrid(document.getElementById('dashWishlistGrid'), wishBooks, 'View');
+        }
+      } else {
+        if (greeting) greeting.textContent = 'Please login to view your dashboard.';
+      }
+
+      // Stats
+      const allBooks = await window.BookAPI.getBooks();
+      document.getElementById('dashMyBooks').textContent = user ? allBooks.filter(b => b.seller?.id === user.id).length : 0;
+      document.getElementById('dashExchanges').textContent = allBooks.filter(b => b.mode === 'exchange').length;
+      document.getElementById('dashDonations').textContent = allBooks.filter(b => b.mode === 'donate').length;
+    });
+  </script>
+</body>
+</html>

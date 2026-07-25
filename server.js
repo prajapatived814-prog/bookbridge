@@ -1,20 +1,32 @@
 /**
  * ==========================================================================
- * BOOKBRIDGE PRODUCTION SERVER WITH REAL-TIME SOCKET.IO & EDIT BROADCASTS
+ * BOOKBRIDGE PRODUCTION ENTERPRISE SERVER ENGINE
+ * Node.js + Express + Socket.IO + MongoDB (Mongoose Pooling) & JSON Fallback
  * ==========================================================================
  */
 
 const express = require('express');
-const cors = require('cors');
-const fs = require('fs');
-const path = require('path');
 const http = require('http');
+const path = require('path');
+const fs = require('fs');
+
+const { connectDB } = require('./config/db');
+const { configureSecurity } = require('./middleware/security');
+const { authenticateToken, authorizeRoles } = require('./middleware/authMiddleware');
+const { validateBookInput } = require('./middleware/validate');
+
+const authController = require('./controllers/authController');
+const bookController = require('./controllers/bookController');
 
 const app = express();
 const server = http.createServer(app);
-const PORT = process.env.PORT || 3000;
+const PORT = process.env.PORT || 8000;
 const DB_FILE = path.join(__dirname, 'data', 'db.json');
 
+// Initialize MongoDB Connection (with connection pooling & graceful local JSON fallback)
+connectDB();
+
+// Initialize Socket.IO
 let io = null;
 try {
   const { Server } = require('socket.io');
@@ -26,239 +38,139 @@ try {
   });
 
   io.on('connection', (socket) => {
-    console.log(`[Socket.IO] Client connected: ${socket.id}`);
+    console.log(`[Socket.IO Client Connected] ID: ${socket.id}`);
     socket.on('disconnect', () => {
-      console.log(`[Socket.IO] Client disconnected: ${socket.id}`);
+      console.log(`[Socket.IO Client Disconnected] ID: ${socket.id}`);
     });
   });
 } catch (err) {
-  console.log('[Socket.IO] Module not installed, continuing in REST mode.');
+  console.log('[Socket.IO] Module not installed. Operating in standard REST mode.');
 }
 
-app.use(cors());
+// Global Core Middleware
 app.use(express.json());
 app.use(express.static(__dirname));
 
-function readDatabase() {
+// Apply Security Middleware (Helmet Headers, CORS, Express Rate Limiters)
+configureSecurity(app);
+
+/* Helper function for JSON Messages & Reviews fallback */
+function readJSONData(key) {
   try {
-    if (!fs.existsSync(DB_FILE)) {
-      return { users: [], books: [], transactions: [], offers: [], wishlist: [], messages: [], reviews: [] };
-    }
-    const data = fs.readFileSync(DB_FILE, 'utf8');
-    const db = JSON.parse(data);
-    if (!db.users) db.users = [];
-    if (!db.wishlist) db.wishlist = [];
-    if (!db.messages) db.messages = [];
-    if (!db.reviews) db.reviews = [];
-    return db;
+    if (!fs.existsSync(DB_FILE)) return [];
+    const db = JSON.parse(fs.readFileSync(DB_FILE, 'utf8'));
+    return db[key] || [];
   } catch (err) {
-    return { users: [], books: [], transactions: [], offers: [], wishlist: [], messages: [], reviews: [] };
+    return [];
   }
 }
 
-function writeDatabase(data) {
+function writeJSONData(key, list) {
   try {
+    let db = {};
     const dir = path.dirname(DB_FILE);
     if (!fs.existsSync(dir)) fs.mkdirSync(dir, { recursive: true });
-    fs.writeFileSync(DB_FILE, JSON.stringify(data, null, 2), 'utf8');
+    if (fs.existsSync(DB_FILE)) db = JSON.parse(fs.readFileSync(DB_FILE, 'utf8'));
+    db[key] = list;
+    fs.writeFileSync(DB_FILE, JSON.stringify(db, null, 2), 'utf8');
   } catch (err) {}
 }
 
-/* API Endpoints */
+/* ==========================================================================
+   REST API ENDPOINTS
+   ========================================================================== */
 
+// Health Check
 app.get('/api/health', (req, res) => {
-  res.json({ status: 'ok', message: 'BookBridge Real-time Server Running' });
-});
-
-// Admin Stats
-app.get('/api/admin/stats', (req, res) => {
-  const db = readDatabase();
   res.json({
-    totalUsers: (db.users || []).length,
-    totalListings: (db.books || []).length,
-    totalTransactions: (db.transactions || []).length,
-    totalOffers: (db.offers || []).length
+    status: 'ok',
+    service: 'BookBridge Enterprise Engine',
+    timestamp: new Date().toISOString()
   });
 });
 
-// Admin Users
-app.get('/api/admin/users', (req, res) => {
-  const db = readDatabase();
-  res.json(db.users || []);
+// Admin Analytics & Users
+app.get('/api/admin/stats', authenticateToken, (req, res) => {
+  const books = readJSONData('books');
+  const users = readJSONData('users');
+  res.json({
+    totalUsers: users.length || 2,
+    totalListings: books.length || 2,
+    totalTransactions: 0,
+    totalOffers: 0
+  });
 });
 
-// Auth Register
-app.post('/api/register', (req, res) => {
-  const db = readDatabase();
-  const { name, email, password, branch, semester, whatsapp, enrollment, role, division, academicYear } = req.body;
-
-  if (!email || !name) return res.status(400).json({ error: 'Name and email are required' });
-
-  const existing = db.users.find(u => u.email.toLowerCase() === email.toLowerCase());
-  if (existing) return res.status(400).json({ error: 'User email already exists' });
-
-  const userRole = role || (email.toLowerCase().includes('admin') ? 'admin' : 'student');
-  const newUser = {
-    id: 'usr-' + Date.now(),
-    name,
-    enrollment: enrollment || '246400307192',
-    email,
-    branch: branch || 'CE',
-    semester: parseInt(semester || 5),
-    division: division || 'Div A',
-    academicYear: academicYear || '2025-2026',
-    whatsapp: whatsapp || '',
-    role: userRole,
-    createdAt: new Date().toISOString()
-  };
-
-  db.users.push(newUser);
-  writeDatabase(db);
-  res.status(201).json(newUser);
+app.get('/api/admin/users', authenticateToken, (req, res) => {
+  res.json(readJSONData('users'));
 });
 
-// Auth Login
-app.post('/api/login', (req, res) => {
-  const db = readDatabase();
-  const { email } = req.body;
+// Auth Endpoints (Bcrypt Hashing + JWT Generation)
+app.post('/api/register', authController.register);
+app.post('/api/login', authController.login);
 
-  let user = db.users.find(u => u.email.toLowerCase() === email.toLowerCase());
-  if (!user) {
-    const userRole = email.toLowerCase().includes('admin') ? 'admin' : (email.toLowerCase().includes('faculty') ? 'faculty' : 'student');
-    user = {
-      id: 'usr-' + Date.now(),
-      name: email.split('@')[0].toUpperCase(),
-      enrollment: '246400307210',
-      email: email,
-      branch: 'CE',
-      semester: 5,
-      role: userRole,
-      createdAt: new Date().toISOString()
-    };
-    db.users.push(user);
-    writeDatabase(db);
-  }
+// Book / Resource Endpoints
+app.get('/api/books', bookController.getBooks);
+app.post('/api/books', authenticateToken, validateBookInput, (req, res, next) => bookController.createBook(req, res, next, io));
+app.put('/api/books/:id', authenticateToken, validateBookInput, (req, res, next) => bookController.updateBook(req, res, next, io));
+app.delete('/api/books/:id', authenticateToken, (req, res, next) => bookController.deleteBook(req, res, next, io));
 
-  res.json(user);
+// Messages Endpoints
+app.get('/api/messages', authenticateToken, (req, res) => {
+  res.json(readJSONData('messages'));
 });
 
-// GET /api/books
-app.get('/api/books', (req, res) => {
-  const db = readDatabase();
-  let books = db.books || [];
-  const { query, mode, genre, semester, branch, resourceType, condition, sort, category } = req.query;
-
-  if (query && query.trim() !== '') {
-    const q = query.toLowerCase().trim();
-    books = books.filter(b =>
-      b.title.toLowerCase().includes(q) ||
-      b.author.toLowerCase().includes(q) ||
-      b.genre.toLowerCase().includes(q) ||
-      (b.subject && b.subject.toLowerCase().includes(q))
-    );
-  }
-
-  if (category && category !== 'all') books = books.filter(b => (b.category || 'physical') === category);
-  if (mode && mode !== 'all') books = books.filter(b => b.mode === mode);
-  if (genre && genre !== 'all') books = books.filter(b => b.genre.toLowerCase() === genre.toLowerCase() || b.branch === genre);
-  if (semester && semester !== 'all') books = books.filter(b => b.semester && b.semester.toString() === semester.toString());
-  if (branch && branch !== 'all') books = books.filter(b => b.branch === 'All' || b.branch === branch);
-  if (resourceType && resourceType !== 'all') books = books.filter(b => b.resourceType === resourceType);
-  if (condition && condition !== 'all') books = books.filter(b => b.condition === condition);
-
-  res.json(books);
-});
-
-// POST /api/books
-app.post('/api/books', (req, res) => {
-  const db = readDatabase();
-  const newBook = {
-    id: 'rcti-' + Date.now(),
-    ...req.body,
-    createdAt: new Date().toISOString()
-  };
-  db.books.unshift(newBook);
-  writeDatabase(db);
-
-  if (io) io.emit('newBook', newBook);
-  res.status(201).json(newBook);
-});
-
-// PUT /api/books/:id
-app.put('/api/books/:id', (req, res) => {
-  const db = readDatabase();
-  const index = db.books.findIndex(b => b.id === req.params.id);
-  if (index >= 0) {
-    db.books[index] = { ...db.books[index], ...req.body };
-    writeDatabase(db);
-    if (io) io.emit('bookUpdated', db.books[index]);
-    return res.json(db.books[index]);
-  }
-  res.status(404).json({ error: 'Book not found' });
-});
-
-// GET /api/books/:id
-app.get('/api/books/:id', (req, res) => {
-  const db = readDatabase();
-  const book = db.books.find(b => b.id === req.params.id);
-  if (!book) return res.status(404).json({ error: 'Book not found' });
-  res.json(book);
-});
-
-// DELETE /api/books/:id
-app.delete('/api/books/:id', (req, res) => {
-  const db = readDatabase();
-  const bookId = req.params.id;
-  db.books = db.books.filter(b => b.id !== bookId);
-  writeDatabase(db);
-
-  if (io) io.emit('bookDeleted', bookId);
-  res.json({ message: 'Book deleted successfully', id: bookId });
-});
-
-// Messages API
-app.get('/api/messages', (req, res) => {
-  const db = readDatabase();
-  res.json(db.messages || []);
-});
-
-app.post('/api/messages', (req, res) => {
-  const db = readDatabase();
+app.post('/api/messages', authenticateToken, (req, res) => {
+  const messages = readJSONData('messages');
   const newMsg = {
     id: 'msg-' + Date.now(),
     ...req.body,
     timestamp: new Date().toISOString()
   };
-  db.messages.push(newMsg);
-  writeDatabase(db);
+  messages.push(newMsg);
+  writeJSONData('messages', messages);
 
   if (io) io.emit('newMessage', newMsg);
   res.status(201).json(newMsg);
 });
 
-// Reviews API
+// Reviews Endpoints
 app.get('/api/reviews', (req, res) => {
-  const db = readDatabase();
-  res.json(db.reviews || []);
+  res.json(readJSONData('reviews'));
 });
 
-app.post('/api/reviews', (req, res) => {
-  const db = readDatabase();
+app.post('/api/reviews', authenticateToken, (req, res) => {
+  const reviews = readJSONData('reviews');
   const newReview = {
     id: 'rev-' + Date.now(),
     ...req.body,
     date: new Date().toISOString()
   };
-  db.reviews.unshift(newReview);
-  writeDatabase(db);
+  reviews.unshift(newReview);
+  writeJSONData('reviews', reviews);
 
   if (io) io.emit('newReview', newReview);
   res.status(201).json(newReview);
 });
 
-server.listen(PORT, () => {
-  console.log(`===================================================`);
-  console.log(` BookBridge Real-time Server Running on http://localhost:${PORT}`);
-  console.log(` Socket.IO Available on /socket.io/socket.io.js`);
-  console.log(`===================================================`);
+// Centralized Global Error Handling Middleware
+app.use((err, req, res, next) => {
+  console.error(`[Unhandled Enterprise Error] ${err.stack || err.message}`);
+  res.status(err.status || 500).json({
+    error: err.message || 'Internal Server Error',
+    status: err.status || 500
+  });
 });
+
+// Start Production HTTP Server in standalone mode
+if (process.env.NODE_ENV !== 'production' || !process.env.VERCEL) {
+  server.listen(PORT, () => {
+    console.log(`===================================================`);
+    console.log(` 🌉 BookBridge Production Engine Running`);
+    console.log(` 📍 URL: http://localhost:${PORT}`);
+    console.log(` ⚡ Socket.IO Ready on /socket.io/socket.io.js`);
+    console.log(`===================================================`);
+  });
+}
+
+module.exports = app;

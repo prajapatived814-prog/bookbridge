@@ -1,0 +1,152 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Contact Us – BookBridge Support</title>
+  <meta name="description" content="Get in touch with the BookBridge team for support, inquiries, or feedback. We're here to help.">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
+  <link rel="stylesheet" href="/style.css">
+</head>
+<body>
+  <a href="#main-content" class="skip-link">Skip to main content</a>
+
+  <header class="navbar" id="navbar">
+    <div class="navbar-inner">
+      <a href="/index.html" class="brand"><div class="brand-icon">📚</div><div><div class="brand-name">BookBridge</div><div class="brand-tagline">Bridge Books. Build Minds.</div></div></a>
+      <nav class="nav-links"><a href="/index.html" class="nav-link">Home</a><a href="/browse.html" class="nav-link">Browse</a><a href="/exchange.html" class="nav-link">Exchange</a><a href="/donate.html" class="nav-link">Donate</a><a href="/about.html" class="nav-link">About</a><a href="/contact.html" class="nav-link active">Contact</a></nav>
+      <div class="nav-actions"><a href="/login.html" class="btn btn-ghost" id="navLoginBtn">Login</a><a href="/register.html" class="btn btn-primary" id="navRegisterBtn">Get Started</a></div>
+      <button class="mobile-toggle" id="mobileMenuToggle"><i class="fa-solid fa-bars"></i></button>
+    </div>
+  </header>
+  <div class="mobile-drawer" id="mobileNavDrawer">
+    <div class="drawer-links"><a href="/index.html" class="drawer-link">Home <i class="fa-solid fa-chevron-right"></i></a><a href="/browse.html" class="drawer-link">Browse <i class="fa-solid fa-chevron-right"></i></a><a href="/exchange.html" class="drawer-link">Exchange <i class="fa-solid fa-chevron-right"></i></a><a href="/donate.html" class="drawer-link">Donate <i class="fa-solid fa-chevron-right"></i></a><a href="/about.html" class="drawer-link">About <i class="fa-solid fa-chevron-right"></i></a><a href="/contact.html" class="drawer-link active">Contact <i class="fa-solid fa-chevron-right"></i></a></div>
+    <div class="drawer-actions" id="mobileDrawerActions"><a href="/login.html" class="btn btn-secondary btn-block">Login</a><a href="/register.html" class="btn btn-primary btn-block">Get Started</a></div>
+  </div>
+
+  <main id="main-content">
+    <nav class="breadcrumb"><a href="/index.html"><i class="fa-solid fa-house"></i></a><span class="separator"><i class="fa-solid fa-chevron-right"></i></span><span class="current">Contact</span></nav>
+
+    <section class="section">
+      <div class="section-header animate-on-scroll">
+        <span class="section-tag">📬 Get in Touch</span>
+        <h1>Contact BookBridge Team</h1>
+        <p>Have questions about textbooks or campus sharing? We're here to help.</p>
+      </div>
+
+      <!-- CONTACT INFO CARDS -->
+      <div class="grid-4 animate-on-scroll" style="margin-bottom: 48px;">
+        <div class="contact-card">
+          <div class="contact-card-icon"><i class="fa-solid fa-envelope"></i></div>
+          <div>
+            <h4>Email</h4>
+            <p>support@bookbridge.in</p>
+          </div>
+        </div>
+        <div class="contact-card">
+          <div class="contact-card-icon" style="background:var(--color-success-light);color:var(--color-success);"><i class="fa-brands fa-whatsapp"></i></div>
+          <div>
+            <h4>WhatsApp</h4>
+            <p>+91 98765 43210</p>
+          </div>
+        </div>
+        <div class="contact-card">
+          <div class="contact-card-icon" style="background:var(--color-secondary-light);color:var(--color-secondary);"><i class="fa-solid fa-location-dot"></i></div>
+          <div>
+            <h4>Address</h4>
+            <p>RCTI, Ahmedabad</p>
+          </div>
+        </div>
+        <div class="contact-card">
+          <div class="contact-card-icon" style="background:var(--color-info-light);color:var(--color-info);"><i class="fa-solid fa-clock"></i></div>
+          <div>
+            <h4>Hours</h4>
+            <p>Mon–Sat, 9AM–6PM</p>
+          </div>
+        </div>
+      </div>
+
+      <!-- CONTACT FORM -->
+      <div class="card animate-on-scroll" style="max-width: 640px; margin: 0 auto 48px; padding: 36px;">
+        <h3 style="margin-bottom: 24px;">Send us a Message</h3>
+        <form id="contactPageForm">
+          <div class="form-group">
+            <i class="fa-solid fa-user form-icon"></i>
+            <input type="text" id="contactName" class="form-input form-icon-left" placeholder=" " required>
+            <label class="form-label" style="left: 44px;">Your Full Name *</label>
+            <div class="form-error">Name is required</div>
+          </div>
+          <div class="form-group">
+            <i class="fa-solid fa-envelope form-icon"></i>
+            <input type="email" id="contactEmail" class="form-input form-icon-left" placeholder=" " required>
+            <label class="form-label" style="left: 44px;">Email Address *</label>
+            <div class="form-error">Enter a valid email</div>
+          </div>
+          <div class="form-group">
+            <select id="contactSubject" class="form-select">
+              <option value="General">General Inquiry</option>
+              <option value="Support">Technical Support</option>
+              <option value="Book">Book Listing Issue</option>
+              <option value="Report">Report a Problem</option>
+              <option value="Feedback">Feedback</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <textarea id="contactMessage" class="form-input" placeholder="Your message or inquiry..." required style="min-height: 130px; padding: 16px; resize: vertical;"></textarea>
+            <div class="form-error">Message is required</div>
+          </div>
+          <button type="submit" class="btn btn-primary btn-block btn-lg">
+            <i class="fa-solid fa-paper-plane"></i> Send Message
+          </button>
+        </form>
+      </div>
+
+      <!-- FAQ ACCORDION -->
+      <div style="max-width: 640px; margin: 0 auto;">
+        <h3 class="animate-on-scroll" style="margin-bottom: 20px; text-align: center;">Frequently Asked Questions</h3>
+        <div class="accordion animate-on-scroll" id="faqAccordion">
+          <div class="accordion-item">
+            <button class="accordion-trigger">Is BookBridge free to use? <i class="fa-solid fa-chevron-down"></i></button>
+            <div class="accordion-body"><div class="accordion-content">Yes! BookBridge is completely free for all students. There are no listing fees, subscription charges, or hidden costs. You only pay the book price agreed upon with the seller.</div></div>
+          </div>
+          <div class="accordion-item">
+            <button class="accordion-trigger">How do I exchange a book? <i class="fa-solid fa-chevron-down"></i></button>
+            <div class="accordion-body"><div class="accordion-content">Simply upload the book you want to exchange on the Exchange page, specifying what book you're looking for. Other students can browse your listing and propose a swap. You'll connect via WhatsApp or in-app messaging to finalize the trade.</div></div>
+          </div>
+          <div class="accordion-item">
+            <button class="accordion-trigger">Can I donate books I no longer need? <i class="fa-solid fa-chevron-down"></i></button>
+            <div class="accordion-body"><div class="accordion-content">Absolutely! Go to the Exchange page, upload your book, and set the price to ₹0 with the "Donate" mode. Your book will appear in the Free Donations section for any student to claim.</div></div>
+          </div>
+          <div class="accordion-item">
+            <button class="accordion-trigger">Is my personal information safe? <i class="fa-solid fa-chevron-down"></i></button>
+            <div class="accordion-body"><div class="accordion-content">Yes. We use JWT authentication, encrypted connections, and never share your personal data with third parties. Your contact information is only visible to other registered students when you choose to share it.</div></div>
+          </div>
+          <div class="accordion-item">
+            <button class="accordion-trigger">Which colleges can use BookBridge? <i class="fa-solid fa-chevron-down"></i></button>
+            <div class="accordion-body"><div class="accordion-content">BookBridge is open to students from all colleges and universities across India. While it was originally built at R. C. Technical Institute, any student can register and use the platform.</div></div>
+          </div>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <footer class="footer">
+    <div class="footer-inner">
+      <div class="footer-grid">
+        <div class="footer-brand"><div class="brand" style="margin-bottom:4px;"><div class="brand-icon">📚</div><div><div class="brand-name">BookBridge</div><div class="brand-tagline">Bridge Books. Build Minds.</div></div></div><p>Student book sharing platform.</p><div class="footer-social"><a href="#"><i class="fa-brands fa-x-twitter"></i></a><a href="#"><i class="fa-brands fa-instagram"></i></a><a href="#"><i class="fa-brands fa-linkedin-in"></i></a><a href="#"><i class="fa-brands fa-github"></i></a></div></div>
+        <div class="footer-col"><h4>Platform</h4><a href="/browse.html">Browse</a><a href="/exchange.html">Exchange</a><a href="/donate.html">Donate</a><a href="/dashboard.html">Dashboard</a></div>
+        <div class="footer-col"><h4>Company</h4><a href="/about.html">About</a><a href="/contact.html">Contact</a><a href="#">Privacy</a><a href="#">Terms</a></div>
+        <div class="footer-col"><h4>Support</h4><a href="/contact.html">Help</a><a href="#">FAQs</a><a href="#">Report</a><a href="/admin.html">Admin</a></div>
+      </div>
+      <div class="footer-bottom"><span>© 2026 BookBridge — All rights reserved.</span><span>Built with ❤️ by RCTI Students</span></div>
+    </div>
+  </footer>
+
+  <button class="scroll-top" id="scrollTopBtn"><i class="fa-solid fa-arrow-up"></i></button>
+  <div class="toast-container" id="toastContainer"></div>
+
+  <script src="/js/database.js"></script>
+  <script src="/js/api.js"></script>
+  <script src="/js/app.js"></script>
+</body>
+</html>
