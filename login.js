@@ -86,8 +86,8 @@ loginForm.addEventListener("submit", function (e) {
     // Redirect
 
     // Login successful
-alert("Login Successful!");
-window.location.href = "../BrowseBooks/browse-books.html";
+    alert("Login Successful!");
+    window.location.href = "browse.html";
 
 });
 
