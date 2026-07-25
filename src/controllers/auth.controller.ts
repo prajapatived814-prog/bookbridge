@@ -3,16 +3,28 @@ import { RegisterUserSchema, LoginUserSchema } from '../validation/schemas';
 import { JWTService } from '../auth/jwt.service';
 import { PasswordService } from '../auth/password.service';
 import { UnauthorizedError, BadRequestError } from '../utils/errors';
+import { RoleType } from '../models/types';
+
+interface UserRecord {
+  id: string;
+  name: string;
+  enrollment: string;
+  email: string;
+  password: string;
+  role: RoleType;
+  branch: string;
+  semester: number;
+}
 
 export class AuthController {
-  private usersDb = [
+  private usersDb: UserRecord[] = [
     {
       id: 'usr-admin',
       name: 'Prof. T. B. Mehta',
       enrollment: 'FAC-CE-001',
       email: 'admin@rcti.ac.in',
       password: '$2a$10$e7q9e7e7e7e7e7e7e7e7e7e7e7e7e7e7e7e7e7e7e7e7e7e7e7e7e', // demo hash
-      role: 'ADMIN' as const,
+      role: 'ADMIN',
       branch: 'CE',
       semester: 5
     },
@@ -22,7 +34,7 @@ export class AuthController {
       enrollment: '246400307192',
       email: 'ved.ce@rcti.ac.in',
       password: '$2a$10$e7q9e7e7e7e7e7e7e7e7e7e7e7e7e7e7e7e7e7e7e7e7e7e7e7e7e',
-      role: 'STUDENT' as const,
+      role: 'STUDENT',
       branch: 'CE',
       semester: 5
     }

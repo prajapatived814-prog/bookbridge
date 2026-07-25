@@ -7,6 +7,11 @@
   status = 200
 
 [[redirects]]
+  from = "/browse-books"
+  to = "/browse.html"
+  status = 200
+
+[[redirects]]
   from = "/exchange"
   to = "/exchange.html"
   status = 200

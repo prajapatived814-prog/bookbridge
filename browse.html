@@ -1,182 +1,782 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Browse Books – BookBridge Library Catalog</title>
-  <meta name="description" content="Search thousands of academic textbooks, lab manuals, and study resources. Filter by department, subject, condition, and price.">
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
-  <link rel="stylesheet" href="/style.css">
+
+    <!-- Meta Information -->
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>Browse Books | BookBridge</title>
+
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+
+    <link
+        href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap"
+        rel="stylesheet">
+
+    <!-- Bootstrap CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.7/dist/css/bootstrap.min.css"
+        rel="stylesheet">
+
+    <!-- Bootstrap Icons -->
+    <link rel="stylesheet"
+        href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.13.1/font/bootstrap-icons.min.css">
+
+    <!-- Custom CSS -->
+    <link rel="stylesheet" href="browse_css/browse-books.css">
+
 </head>
+
 <body>
 
-  <a href="#main-content" class="skip-link">Skip to main content</a>
+    <!-- ===================== Navbar ===================== -->
 
-  <!-- NAVBAR -->
-  <header class="navbar" id="navbar">
-    <div class="navbar-inner">
-      <a href="/index.html" class="brand" aria-label="BookBridge Home">
-        <div class="brand-icon">📚</div>
-        <div><div class="brand-name">BookBridge</div><div class="brand-tagline">Bridge Books. Build Minds.</div></div>
-      </a>
-      <nav class="nav-links" aria-label="Main Navigation">
-        <a href="/index.html" class="nav-link">Home</a>
-        <a href="/browse.html" class="nav-link active">Browse</a>
-        <a href="/exchange.html" class="nav-link">Exchange</a>
-        <a href="/donate.html" class="nav-link">Donate</a>
-        <a href="/about.html" class="nav-link">About</a>
-        <a href="/contact.html" class="nav-link">Contact</a>
-      </nav>
-      <div class="nav-actions">
-        <a href="/login.html" class="btn btn-ghost" id="navLoginBtn">Login</a>
-        <a href="/register.html" class="btn btn-primary" id="navRegisterBtn">Get Started</a>
-      </div>
-      <button class="mobile-toggle" id="mobileMenuToggle" aria-label="Toggle Navigation Menu"><i class="fa-solid fa-bars"></i></button>
-    </div>
-  </header>
+    <nav class="navbar navbar-expand-lg bg-white shadow-sm sticky-top">
 
-  <div class="mobile-drawer" id="mobileNavDrawer">
-    <div class="drawer-links">
-      <a href="/index.html" class="drawer-link">Home <i class="fa-solid fa-chevron-right"></i></a>
-      <a href="/browse.html" class="drawer-link active">Browse Books <i class="fa-solid fa-chevron-right"></i></a>
-      <a href="/exchange.html" class="drawer-link">Exchange <i class="fa-solid fa-chevron-right"></i></a>
-      <a href="/donate.html" class="drawer-link">Donate <i class="fa-solid fa-chevron-right"></i></a>
-      <a href="/about.html" class="drawer-link">About <i class="fa-solid fa-chevron-right"></i></a>
-      <a href="/contact.html" class="drawer-link">Contact <i class="fa-solid fa-chevron-right"></i></a>
-    </div>
-    <div class="drawer-actions" id="mobileDrawerActions">
-      <a href="/login.html" class="btn btn-secondary btn-block">Login</a>
-      <a href="/register.html" class="btn btn-primary btn-block">Get Started</a>
-    </div>
-  </div>
+        <div class="container">
 
-  <main id="main-content">
+            <!-- Logo -->
+            <a class="navbar-brand fw-bold" href="index.html">
+                BookBridge
+            </a>
 
-    <!-- BREADCRUMB -->
-    <nav class="breadcrumb" aria-label="Breadcrumb">
-      <a href="/index.html"><i class="fa-solid fa-house"></i></a>
-      <span class="separator"><i class="fa-solid fa-chevron-right"></i></span>
-      <span class="current">Browse Books</span>
+            <!-- Mobile Menu -->
+            <button class="navbar-toggler"
+                type="button"
+                data-bs-toggle="collapse"
+                data-bs-target="#navbarMenu">
+
+                <span class="navbar-toggler-icon"></span>
+
+            </button>
+
+            <!-- Navigation -->
+
+            <div class="collapse navbar-collapse"
+                id="navbarMenu">
+
+                <ul class="navbar-nav mx-auto">
+
+                    <li class="nav-item">
+                        <a class="nav-link"
+                            href="index.html">
+                            Home
+                        </a>
+                    </li>
+
+                    <li class="nav-item">
+                        <a class="nav-link active"
+                            href="browse.html">
+                            Browse Books
+                        </a>
+                    </li>
+
+                    <li class="nav-item">
+                        <a class="nav-link"
+                            href="exchange.html">
+                            Sell Book
+                        </a>
+                    </li>
+
+                    <li class="nav-item">
+                        <a class="nav-link"
+                            href="donate.html">
+                            Donate Book
+                        </a>
+                    </li>
+
+                    <li class="nav-item">
+                        <a class="nav-link"
+                            href="about.html">
+                            About
+                        </a>
+                    </li>
+
+                    <li class="nav-item">
+                        <a class="nav-link"
+                            href="contact.html">
+                            Contact
+                        </a>
+                    </li>
+
+                </ul>
+
+                <!-- Right Buttons -->
+
+                <div class="d-flex gap-2">
+
+                    <a href="login.html"
+                        class="btn btn-outline-success">
+                        Login
+                    </a>
+
+                    <a href="register.html"
+                        class="btn btn-success">
+                        Register
+                    </a>
+
+                </div>
+
+            </div>
+
+        </div>
+
     </nav>
 
-    <section class="section" style="padding-top: 20px;">
-      <div class="section-header animate-on-scroll">
-        <span class="section-tag">📚 Library Catalog</span>
-        <h1>Browse Academic Resources</h1>
-        <p>Search textbooks, lab manuals, and assignments by department, subject, or keyword.</p>
-      </div>
+    <!-- ===================== Hero Section ===================== -->
 
-      <!-- SEARCH BAR -->
-      <div style="max-width: 720px; margin: 0 auto 24px;">
-        <div class="search-bar" style="max-width: 100%;">
-          <i class="fa-solid fa-magnifying-glass" style="color: var(--color-gray-light); margin-right: 8px;"></i>
-          <input type="text" id="browseSearchInput" placeholder="Search by title, author, subject code..." aria-label="Search books">
-          <button type="button" id="btnBrowseSearch" class="btn btn-primary btn-sm"><i class="fa-solid fa-search"></i> Search</button>
+    <section class="hero-section py-5">
+
+        <div class="container">
+
+            <div class="row align-items-center">
+
+                <!-- Left Content -->
+
+                <div class="col-lg-6">
+
+                    <h1 class="hero-title">
+                        Browse Books
+                    </h1>
+
+                <p class="hero-description">
+                        Find textbooks, reference books and study materials shared by students across different departments. Buy affordable books or discover books donated by seniors.
+                </p>
+
+                    <a href="#books-section"
+                        class="btn btn-success btn-lg mt-3">
+
+                        Explore Books
+
+                    </a>
+
+                </div>
+
+                <!-- Right Image -->
+
+                <div class="col-lg-6 text-center mt-5 mt-lg-0">
+
+                    <img src="browse_images/hero.png"
+                    alt="Browse Books" 
+                    class="img-fluid hero-image">
+
+                </div>
+
+            </div>
+
         </div>
-      </div>
 
-      <!-- FILTER PILLS -->
-      <div class="filter-pills animate-on-scroll" id="deptPillsBar" style="margin-bottom: 16px;">
-        <button class="filter-pill active" data-dept="ALL">All Branches</button>
-        <button class="filter-pill" data-dept="CE">Computer (CE)</button>
-        <button class="filter-pill" data-dept="IT">Info Tech (IT)</button>
-        <button class="filter-pill" data-dept="ICT">ICT</button>
-        <button class="filter-pill" data-dept="EE">Electrical (EE)</button>
-        <button class="filter-pill" data-dept="ME">Mechanical (ME)</button>
-        <button class="filter-pill" data-dept="Civil">Civil</button>
-      </div>
-
-      <!-- ADVANCED FILTERS -->
-      <div class="advanced-search animate-on-scroll" style="max-width: 720px; margin: 0 auto 32px;">
-        <select id="browseSubjectSelect" class="form-select" aria-label="Filter by subject">
-          <option>All Subjects</option>
-          <option>Computer Science</option>
-          <option>Mathematics</option>
-          <option>Physics</option>
-          <option>Chemistry</option>
-          <option>Engineering</option>
-        </select>
-        <select id="browseConditionSelect" class="form-select" aria-label="Filter by condition">
-          <option>Any Condition</option>
-          <option>Like New</option>
-          <option>Good</option>
-          <option>Fair</option>
-          <option>Worn</option>
-        </select>
-        <div style="position: relative;">
-          <input type="number" id="browseMaxPrice" class="form-select" placeholder="Max Price (₹)" min="0" style="padding-right: 12px;" aria-label="Maximum price">
-        </div>
-        <select id="browseSortSelect" class="form-select" aria-label="Sort results">
-          <option value="">Sort By</option>
-          <option value="price-low">Price: Low → High</option>
-          <option value="price-high">Price: High → Low</option>
-          <option value="rating">Highest Rating</option>
-        </select>
-      </div>
-
-      <!-- RESULTS COUNT -->
-      <div class="flex-between" style="margin-bottom: 20px; max-width: 720px; margin-left: auto; margin-right: auto; margin-bottom: 20px;">
-        <p class="text-small" id="browseResultsCount" style="margin: 0;">Loading results...</p>
-      </div>
-
-      <!-- BOOKS GRID -->
-      <div class="grid-auto" id="browseBooksGrid">
-        <div class="skeleton-card"><div class="skeleton skeleton-image"></div><div style="padding:12px"><div class="skeleton skeleton-title"></div><div class="skeleton skeleton-text"></div><div class="skeleton skeleton-text"></div></div></div>
-        <div class="skeleton-card"><div class="skeleton skeleton-image"></div><div style="padding:12px"><div class="skeleton skeleton-title"></div><div class="skeleton skeleton-text"></div><div class="skeleton skeleton-text"></div></div></div>
-        <div class="skeleton-card"><div class="skeleton skeleton-image"></div><div style="padding:12px"><div class="skeleton skeleton-title"></div><div class="skeleton skeleton-text"></div><div class="skeleton skeleton-text"></div></div></div>
-        <div class="skeleton-card"><div class="skeleton skeleton-image"></div><div style="padding:12px"><div class="skeleton skeleton-title"></div><div class="skeleton skeleton-text"></div><div class="skeleton skeleton-text"></div></div></div>
-      </div>
-
-      <!-- PAGINATION -->
-      <div class="pagination" id="paginationContainer"></div>
     </section>
 
-  </main>
 
-  <!-- FOOTER -->
-  <footer class="footer">
-    <div class="footer-inner">
-      <div class="footer-grid">
-        <div class="footer-brand">
-          <div class="brand" style="margin-bottom: 4px;"><div class="brand-icon">📚</div><div><div class="brand-name">BookBridge</div><div class="brand-tagline">Bridge Books. Build Minds.</div></div></div>
-          <p>India's premier student platform for buying, selling, exchanging and donating academic books.</p>
-          <div class="footer-social">
-            <a href="#" aria-label="Twitter"><i class="fa-brands fa-x-twitter"></i></a>
-            <a href="#" aria-label="Instagram"><i class="fa-brands fa-instagram"></i></a>
-            <a href="#" aria-label="LinkedIn"><i class="fa-brands fa-linkedin-in"></i></a>
-            <a href="#" aria-label="GitHub"><i class="fa-brands fa-github"></i></a>
-          </div>
+
+        <!-- ===================== Search & Filter Section ===================== -->
+
+    <section class="search-filter-section py-4">
+
+        <div class="container">
+
+            <div class="row g-3 align-items-center">
+
+                <!-- Search Bar -->
+
+                <div class="col-lg-7">
+
+                    <div class="input-group">
+
+                        <span class="input-group-text">
+                            <i class="bi bi-search"></i>
+                        </span>
+
+                        <input
+                            type="text"
+                            id="searchInput"
+                            class="form-control"
+                            placeholder="Search by book title, author or subject...">
+
+                    </div>
+
+                </div>
+
+                <!-- Filter Button -->
+
+                <div class="col-lg-2 d-grid">
+
+                    <button
+                        class="btn btn-outline-success"
+                        type="button"
+                        data-bs-toggle="offcanvas"
+                        data-bs-target="#filterCanvas">
+
+                        <i class="bi bi-funnel me-2"></i>
+
+                        Filters
+
+                    </button>
+
+                </div>
+
+              <!-- Sort Dropdown -->
+
+<div class="col-lg-3">
+
+    <select
+        id="sortBooks"
+        class="form-select">
+
+        <option value="default">
+            Sort By
+        </option>
+
+        <option value="titleAZ">
+            Name (A-Z)
+        </option>
+
+        <option value="titleZA">
+            Name (Z-A)
+        </option>
+
+        <option value="priceLowHigh">
+            Price (Low to High)
+        </option>
+
+        <option value="priceHighLow">
+            Price (High to Low)
+        </option>
+
+    </select>
+
+</div>
+</div>      <!-- row -->
+</div>      <!-- container -->
+</section>  <!-- search-filter-section -->
+
+    <!-- ===================== Results Count ===================== -->
+
+    <section class="results-section">
+
+        <div class="container">
+
+            <div class="d-flex justify-content-between align-items-center">
+
+                <h5 class="mb-0">
+
+                    Showing
+
+                    <span id="bookCount">
+
+                        0
+
+                    </span>
+
+                    Books
+
+                </h5>
+
+            </div>
+
         </div>
-        <div class="footer-col"><h4>Platform</h4><a href="/browse.html">Browse Books</a><a href="/exchange.html">Exchange</a><a href="/donate.html">Donate</a><a href="/dashboard.html">Dashboard</a></div>
-        <div class="footer-col"><h4>Company</h4><a href="/about.html">About Us</a><a href="/contact.html">Contact</a><a href="#">Privacy Policy</a><a href="#">Terms</a></div>
-        <div class="footer-col"><h4>Support</h4><a href="/contact.html">Help Center</a><a href="#">FAQs</a><a href="#">Report Issue</a><a href="/admin.html">Admin</a></div>
-      </div>
-      <div class="footer-bottom">
-        <span>© 2026 BookBridge — All rights reserved.</span>
-        <span>Built with ❤️ by RCTI Students</span>
-      </div>
+
+    </section>
+
+
+
+    <!-- ===================== Books Grid ===================== -->
+
+    <section
+        id="books-section"
+        class="books-section py-5">
+
+        <div class="container">
+
+            <div
+                id="booksContainer"
+                class="row g-4">
+
+                <!-- Book Cards will be loaded here dynamically -->
+
+            </div>
+
+        </div>
+
+    </section>
+
+
+
+
+        <!-- ===================== Filter Offcanvas ===================== -->
+
+    <div class="offcanvas offcanvas-end"
+        tabindex="-1"
+        id="filterCanvas">
+
+        <div class="offcanvas-header">
+
+            <h4 class="offcanvas-title">
+                Filters
+            </h4>
+
+            <button type="button"
+                class="btn-close"
+                data-bs-dismiss="offcanvas">
+            </button>
+
+        </div>
+
+        <div class="offcanvas-body">
+
+            <!-- Category -->
+
+            <div class="mb-4">
+
+                <h6 class="fw-semibold mb-3">
+                    Category
+                </h6>
+
+                <select class="form-select" id="categoryFilter">
+
+                    <option value="">All Categories</option>
+                    <option>Programming</option>
+                    <option>Mathematics</option>
+                    <option>Science</option>
+                    <option>Engineering</option>
+                    <option>Electronics</option>
+                    <option>Networking</option>
+                    <option>Communication Skills</option>
+                    <option>Others</option>
+
+                </select>
+
+            </div>
+
+            <!-- Department -->
+
+            <div class="mb-4">
+
+                <h6 class="fw-semibold mb-3">
+                    Department
+                </h6>
+
+                <select class="form-select" id="departmentFilter">
+
+                    <option value="">All Departments</option>
+
+                    <option>Computer Engineering</option>
+                    <option>Information Technology</option>
+                    <option>Civil Engineering</option>
+                    <option>Mechanical Engineering</option>
+                    <option>Electrical Engineering</option>
+                    <option>ICT</option>
+                    <option>Printing Technology</option>
+                    <option>Textile Manufacturing Technology</option>
+                    <option>Textile Processing Technology</option>
+                    <option>Mathematics</option>
+                    <option>Science & Humanities</option>
+
+                </select>
+
+            </div>
+
+            <!-- Semester -->
+
+            <div class="mb-4">
+
+                <h6 class="fw-semibold mb-3">
+                    Semester
+                </h6>
+
+                <select class="form-select" id="semesterFilter">
+
+                    <option value="">All Semesters</option>
+
+                    <option>1</option>
+                    <option>2</option>
+                    <option>3</option>
+                    <option>4</option>
+                    <option>5</option>
+                    <option>6</option>
+
+                </select>
+
+            </div>
+
+            <!-- Condition -->
+
+            <div class="mb-4">
+
+                <h6 class="fw-semibold mb-3">
+                    Condition
+                </h6>
+
+                <select class="form-select" id="conditionFilter">
+
+                    <option value="">All Conditions</option>
+
+                    <option>Like New</option>
+                    <option>Excellent</option>
+                    <option>Good</option>
+                    <option>Fair</option>
+
+                </select>
+
+            </div>
+
+            <!-- Price -->
+
+            <div class="mb-4">
+
+                <h6 class="fw-semibold mb-3">
+                    Maximum Price
+                </h6>
+
+                <input
+                    type="range"
+                    class="form-range"
+                    min="0"
+                    max="1200"
+                    step="50"
+                    value="1200"
+                    id="priceRange">
+
+                <div class="text-end">
+
+                    <span id="priceValue">
+
+                        ₹1200
+
+                    </span>
+
+                </div>
+
+            </div>
+
+            <!-- Buttons -->
+
+            <div class="d-grid gap-2">
+
+                <button
+                    class="btn btn-outline-secondary"
+                    id="clearFilterBtn">
+
+                    Clear Filters
+
+                </button>
+
+                <button
+                    class="btn btn-success"
+                    id="applyFilterBtn"
+                    data-bs-dismiss="offcanvas">
+
+                    Apply Filters
+
+                </button>
+
+            </div>
+
+        </div>
+
     </div>
-  </footer>
 
-  <button class="scroll-top" id="scrollTopBtn" aria-label="Scroll to top"><i class="fa-solid fa-arrow-up"></i></button>
-  <div class="toast-container" id="toastContainer"></div>
 
-  <div class="modal-overlay" id="bookDetailsModal">
-    <div class="modal-card" style="max-width: 560px;">
-      <div class="modal-header">
-        <h3 id="modalBookTitle">Book Details</h3>
-        <button class="modal-close" id="closeBookDetailsModal"><i class="fa-solid fa-xmark"></i></button>
-      </div>
-      <div id="modalBookBody"></div>
-      <div style="display: flex; gap: 10px; flex-wrap: wrap; margin-top: 20px;">
-        <a id="btnModalWhatsapp" target="_blank" class="btn btn-primary" style="flex:1; text-decoration:none; background:#25D366; border-color:#25D366;"><i class="fa-brands fa-whatsapp"></i> WhatsApp</a>
-        <button id="btnModalActionConfirm" class="btn btn-brown" style="flex:1;">Confirm</button>
-      </div>
+
+    <!-- ==========================================
+     Book Details Modal
+========================================== -->
+
+<div
+    class="modal fade"
+    id="bookDetailsModal"
+    tabindex="-1"
+    aria-labelledby="bookDetailsModalLabel"
+    aria-hidden="true">
+
+    <div class="modal-dialog modal-lg modal-dialog-centered">
+
+        <div class="modal-content">
+
+            <!-- Modal Header -->
+
+            <div class="modal-header">
+
+                <h4
+                    class="modal-title"
+                    id="bookDetailsModalLabel">
+
+                    Book Details
+
+                </h4>
+
+                <button
+                    type="button"
+                    class="btn-close"
+                    data-bs-dismiss="modal"
+                    aria-label="Close">
+                </button>
+
+            </div>
+
+
+            <!-- Modal Body -->
+
+            <div class="modal-body">
+
+                <div class="row g-4">
+
+                    <!-- Book Image -->
+
+                    <div class="col-md-4 text-center">
+
+                        <img
+                            id="modalBookImage"
+                            src=""
+                            alt="Book Image"
+                            class="img-fluid rounded shadow">
+
+                    </div>
+
+
+                    <!-- Book Information -->
+
+                    <div class="col-md-8">
+
+                        <h3 id="modalBookTitle"></h3>
+
+                        <p>
+
+                            <strong>Author :</strong>
+
+                            <span id="modalBookAuthor"></span>
+
+                        </p>
+
+                        <p>
+
+                            <strong>Department :</strong>
+
+                            <span id="modalBookDepartment"></span>
+
+                        </p>
+
+                        <p>
+
+                            <strong>Semester :</strong>
+
+                            <span id="modalBookSemester"></span>
+
+                        </p>
+
+                        <p>
+
+                            <strong>Category :</strong>
+
+                            <span id="modalBookCategory"></span>
+
+                        </p>
+
+                        <p>
+
+                            <strong>Condition :</strong>
+
+                            <span id="modalBookCondition"></span>
+
+                        </p>
+
+                        <p>
+
+                            <strong>Book Type :</strong>
+
+                            <span id="modalBookType"></span>
+
+                        </p>
+
+                        <p>
+
+                            <strong>Price :</strong>
+
+                            <span id="modalBookPrice"></span>
+
+                        </p>
+
+                        <p>
+
+                            <strong>Description :</strong>
+
+                        </p>
+
+                        <p
+                            id="modalBookDescription"
+                            class="text-muted">
+
+                        </p>
+
+                    </div>
+
+                </div>
+
+            </div>
+
+
+            <!-- Modal Footer -->
+
+            <div class="modal-footer">
+
+                <button
+                    type="button"
+                    class="btn btn-secondary"
+                    data-bs-dismiss="modal">
+
+                    Close
+
+                </button>
+
+            </div>
+
+        </div>
+
     </div>
-  </div>
 
-  <script src="/js/database.js"></script>
-  <script src="/js/api.js"></script>
-  <script src="/js/app.js"></script>
+</div>
+
+
+
+
+        <!-- ===================== Footer ===================== -->
+
+    <footer class="footer py-5">
+
+        <div class="container">
+
+            <div class="row">
+
+                <!-- About -->
+
+                <div class="col-lg-4 mb-4">
+
+                    <h4 class="fw-bold">
+                        BookBridge
+                    </h4>
+
+                    <p>
+                        BookBridge is a student-friendly platform where you can
+                        buy, sell and donate books within your college
+                        community.
+                    </p>
+
+                </div>
+
+                <!-- Quick Links -->
+
+                <div class="col-lg-2 mb-4">
+
+                    <h5>
+                        Quick Links
+                    </h5>
+
+                    <ul class="list-unstyled">
+
+                        <li><a href="#">Home</a></li>
+
+                        <li><a href="#">Browse Books</a></li>
+
+                        <li><a href="#">Sell Book</a></li>
+
+                        <li><a href="#">Donate Book</a></li>
+
+                    </ul>
+
+                </div>
+
+                <!-- Support -->
+
+                <div class="col-lg-3 mb-4">
+
+                    <h5>
+                        Support
+                    </h5>
+
+                    <ul class="list-unstyled">
+
+                        <li><a href="#">About Us</a></li>
+
+                        <li><a href="#">Contact</a></li>
+
+                        <li><a href="#">Privacy Policy</a></li>
+
+                        <li><a href="#">Terms & Conditions</a></li>
+
+                    </ul>
+
+                </div>
+
+                <!-- Contact -->
+
+                <div class="col-lg-3 mb-4">
+
+                    <h5>
+                        Contact
+                    </h5>
+
+                    <p class="mb-1">
+                        Ahmedabad, Gujarat
+                    </p>
+
+                    <p class="mb-1">
+                        support@bookbridge.com
+                    </p>
+
+                    <p>
+                        +91 98765 43210
+                    </p>
+
+                </div>
+
+            </div>
+
+            <hr>
+
+            <div class="text-center">
+
+                <p class="mb-0">
+                    © 2026 BookBridge. All Rights Reserved.
+                </p>
+
+            </div>
+
+        </div>
+
+    </footer>
+
+
+
+    <!-- ===================== JavaScript Files ===================== -->
+<!-- ===================== JavaScript Files ===================== -->
+
+<!-- Bootstrap JS -->
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.7/dist/js/bootstrap.bundle.min.js"></script>
+
+<!-- Book Data -->
+<script src="browse_js/browse-books-data.js"></script>
+
+<!-- Render Books -->
+<script src="browse_js/browse-books-render.js"></script>
+
+<!-- Search Function -->
+<script src="browse_js/browse-books-search.js"></script>
+
+<!-- Filter Function -->
+<script src="browse_js/browse-books-filter.js"></script>
+
+<!-- Sort Function -->
+<script src="browse_js/browse-books-sort.js"></script>
+
+<!-- Main JavaScript -->
+<script src="browse_js/browse-books.js"></script>
+
 </body>
 </html>
+
+
+
