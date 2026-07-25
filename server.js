@@ -51,6 +51,47 @@ try {
 app.use(express.json());
 app.use(express.static(__dirname));
 
+// Serve Static HTML Pages
+app.get('/', (req, res) => {
+  res.sendFile(path.join(__dirname, 'index.html'));
+});
+
+app.get('/browse', (req, res) => {
+  res.sendFile(path.join(__dirname, 'browse.html'));
+});
+
+app.get('/browse-books', (req, res) => {
+  res.sendFile(path.join(__dirname, 'browse.html'));
+});
+
+app.get('/exchange', (req, res) => {
+  res.sendFile(path.join(__dirname, 'exchange.html'));
+});
+
+app.get('/donate', (req, res) => {
+  res.sendFile(path.join(__dirname, 'donate.html'));
+});
+
+app.get('/about', (req, res) => {
+  res.sendFile(path.join(__dirname, 'about.html'));
+});
+
+app.get('/contact', (req, res) => {
+  res.sendFile(path.join(__dirname, 'contact.html'));
+});
+
+app.get('/login', (req, res) => {
+  res.sendFile(path.join(__dirname, 'login.html'));
+});
+
+app.get('/register', (req, res) => {
+  res.sendFile(path.join(__dirname, 'register.html'));
+});
+
+app.get('/admin', (req, res) => {
+  res.sendFile(path.join(__dirname, 'admin.html'));
+});
+
 // Apply Security Middleware (Helmet Headers, CORS, Express Rate Limiters)
 configureSecurity(app);
 
