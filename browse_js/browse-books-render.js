@@ -97,14 +97,22 @@ function renderBooks(bookList = books) {
 
                         </div>
 
-                        <!-- View Details Button -->
-                        <button
-                            class="view-btn"
-                            data-id="${book.id}">
-
-                            View Details
-
-                        </button>
+                        <!-- View Details & Admin Actions -->
+                        <div class="d-flex gap-2 align-items-center mt-2 flex-wrap">
+                            <button
+                                class="view-btn flex-grow-1"
+                                data-id="${book.id}">
+                                View Details
+                            </button>
+                            ${(typeof isAdminMode !== "undefined" && isAdminMode) ? `
+                                <button class="btn btn-sm btn-warning text-dark admin-edit-btn px-2" data-id="${book.id}" title="Edit Book & Replace Photo">
+                                    <i class="bi bi-pencil-square me-1"></i> Edit Photo
+                                </button>
+                                <button class="btn btn-sm btn-outline-danger admin-delete-btn px-2" data-id="${book.id}" title="Delete Book">
+                                    <i class="bi bi-trash"></i>
+                                </button>
+                            ` : ''}
+                        </div>
 
                     </div>
 

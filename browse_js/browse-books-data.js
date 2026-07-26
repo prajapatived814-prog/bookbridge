@@ -333,15 +333,21 @@ const books = [
 ];
 
 /* ==========================================
-   Load User Uploaded Books from LocalStorage
+   Load Admin Edited Catalog / User Uploads from LocalStorage
 ========================================== */
 try {
-    const userUploaded = JSON.parse(localStorage.getItem("user_uploaded_books") || "[]");
-    if (Array.isArray(userUploaded) && userUploaded.length > 0) {
-        books.unshift(...userUploaded);
+    const adminEdited = JSON.parse(localStorage.getItem("admin_edited_catalog") || "[]");
+    if (Array.isArray(adminEdited) && adminEdited.length > 0) {
+        books.length = 0;
+        books.push(...adminEdited);
+    } else {
+        const userUploaded = JSON.parse(localStorage.getItem("user_uploaded_books") || "[]");
+        if (Array.isArray(userUploaded) && userUploaded.length > 0) {
+            books.unshift(...userUploaded);
+        }
     }
 } catch (err) {
-    console.error("Failed to load user uploaded books:", err);
+    console.error("Failed to load catalog from localStorage:", err);
 }
 
 /* ==========================================
