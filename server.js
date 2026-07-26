@@ -207,12 +207,13 @@ app.use((err, req, res, next) => {
   });
 });
 
-// Start Production HTTP Server in standalone mode
-if (process.env.NODE_ENV !== 'production' || !process.env.VERCEL) {
-  server.listen(PORT, () => {
+// Start Production HTTP Server (Bound to 0.0.0.0 for Render / Docker)
+if (!process.env.VERCEL) {
+  const HOST = '0.0.0.0';
+  server.listen(PORT, HOST, () => {
     console.log(`===================================================`);
     console.log(` 🌉 BookBridge Production Engine Running`);
-    console.log(` 📍 URL: http://localhost:${PORT}`);
+    console.log(` 📍 URL: http://${HOST}:${PORT}`);
     console.log(` ⚡ Socket.IO Ready on /socket.io/socket.io.js`);
     console.log(`===================================================`);
   });
