@@ -47,50 +47,41 @@ try {
   console.log('[Socket.IO] Module not installed. Operating in standard REST mode.');
 }
 
+// Helper for resilient static file serving across environments (Render, Vercel, Docker, Local)
+const serveStaticFile = (res, filename) => {
+  const candidates = [
+    path.join(process.cwd(), filename),
+    path.join(__dirname, filename),
+    path.join(__dirname, '..', filename),
+    path.join(__dirname, '..', '..', filename)
+  ];
+
+  for (const filePath of candidates) {
+    if (fs.existsSync(filePath)) {
+      return res.sendFile(filePath);
+    }
+  }
+
+  // Graceful fallback if file is not on disk
+  res.status(200).send(`<!DOCTYPE html><html><head><meta charset="UTF-8"><title>BookBridge</title><script>window.location.href="/browse";</script></head><body><h2>BookBridge Online</h2><p><a href="/browse">Go to Browse Books</a></p></body></html>`);
+};
+
 // Global Core Middleware
 app.use(express.json());
+app.use(express.static(process.cwd()));
 app.use(express.static(__dirname));
 
-// Serve Static HTML Pages
-app.get('/', (req, res) => {
-  res.sendFile(path.join(__dirname, 'index.html'));
-});
-
-app.get('/browse', (req, res) => {
-  res.sendFile(path.join(__dirname, 'browse.html'));
-});
-
-app.get('/browse-books', (req, res) => {
-  res.sendFile(path.join(__dirname, 'browse.html'));
-});
-
-app.get('/exchange', (req, res) => {
-  res.sendFile(path.join(__dirname, 'exchange.html'));
-});
-
-app.get('/donate', (req, res) => {
-  res.sendFile(path.join(__dirname, 'donate.html'));
-});
-
-app.get('/about', (req, res) => {
-  res.sendFile(path.join(__dirname, 'about.html'));
-});
-
-app.get('/contact', (req, res) => {
-  res.sendFile(path.join(__dirname, 'contact.html'));
-});
-
-app.get('/login', (req, res) => {
-  res.sendFile(path.join(__dirname, 'login.html'));
-});
-
-app.get('/register', (req, res) => {
-  res.sendFile(path.join(__dirname, 'register.html'));
-});
-
-app.get('/admin', (req, res) => {
-  res.sendFile(path.join(__dirname, 'admin.html'));
-});
+// Serve Static HTML Pages safely
+app.get('/', (req, res) => serveStaticFile(res, 'index.html'));
+app.get('/browse', (req, res) => serveStaticFile(res, 'browse.html'));
+app.get('/browse-books', (req, res) => serveStaticFile(res, 'browse.html'));
+app.get('/exchange', (req, res) => serveStaticFile(res, 'exchange.html'));
+app.get('/donate', (req, res) => serveStaticFile(res, 'donate.html'));
+app.get('/about', (req, res) => serveStaticFile(res, 'about.html'));
+app.get('/contact', (req, res) => serveStaticFile(res, 'contact.html'));
+app.get('/login', (req, res) => serveStaticFile(res, 'login.html'));
+app.get('/register', (req, res) => serveStaticFile(res, 'register.html'));
+app.get('/admin', (req, res) => serveStaticFile(res, 'admin.html'));
 
 // Apply Security Middleware (Helmet Headers, CORS, Express Rate Limiters)
 configureSecurity(app);
