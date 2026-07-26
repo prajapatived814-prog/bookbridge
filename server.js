@@ -50,19 +50,26 @@ try {
 // Helper for resilient static file serving across environments (Render, Vercel, Docker, Local)
 const serveStaticFile = (res, filename) => {
   const candidates = [
-    path.join(process.cwd(), filename),
-    path.join(__dirname, filename),
-    path.join(__dirname, '..', filename),
-    path.join(__dirname, '..', '..', filename)
+    path.resolve(process.cwd(), filename),
+    path.resolve(__dirname, filename),
+    path.resolve(__dirname, '..', filename),
+    path.resolve(__dirname, '..', '..', filename)
   ];
 
   for (const filePath of candidates) {
-    if (fs.existsSync(filePath)) {
-      return res.sendFile(filePath);
+    try {
+      if (fs.existsSync(filePath)) {
+        const htmlContent = fs.readFileSync(filePath, 'utf8');
+        res.setHeader('Content-Type', 'text/html; charset=utf-8');
+        return res.status(200).send(htmlContent);
+      }
+    } catch (err) {
+      console.error(`[Static File Error] Failed reading ${filePath}:`, err);
     }
   }
 
   // Graceful fallback if file is not on disk
+  res.setHeader('Content-Type', 'text/html; charset=utf-8');
   res.status(200).send(`<!DOCTYPE html><html><head><meta charset="UTF-8"><title>BookBridge</title><script>window.location.href="/browse";</script></head><body><h2>BookBridge Online</h2><p><a href="/browse">Go to Browse Books</a></p></body></html>`);
 };
 
