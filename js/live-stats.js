@@ -3,24 +3,23 @@
 ========================================== */
 
 const DEFAULT_STATS = {
-    students: 10480,
-    books: 50210,
-    exchanges: 8950
+    students: 0,
+    books: 0,
+    exchanges: 0
 };
 
-// Retrieve current live stats from LocalStorage (with fallback to defaults)
+// Retrieve current live stats from LocalStorage (starting from 0)
 function getLiveStats() {
     try {
         const stored = JSON.parse(localStorage.getItem("bookbridge_live_stats") || "null");
         if (stored && typeof stored === "object") {
-            // Count custom uploaded books dynamically
             const customBooks = JSON.parse(localStorage.getItem("user_uploaded_books") || "[]");
             const extraBooks = Array.isArray(customBooks) ? customBooks.length : 0;
 
             return {
-                students: Math.max(DEFAULT_STATS.students, Number(stored.students) || DEFAULT_STATS.students),
-                books: Math.max(DEFAULT_STATS.books + extraBooks, Number(stored.books) || DEFAULT_STATS.books + extraBooks),
-                exchanges: Math.max(DEFAULT_STATS.exchanges, Number(stored.exchanges) || DEFAULT_STATS.exchanges)
+                students: Math.max(0, Number(stored.students) || 0),
+                books: Math.max(0, (Number(stored.books) || 0) + extraBooks),
+                exchanges: Math.max(0, Number(stored.exchanges) || 0)
             };
         }
     } catch (e) {
