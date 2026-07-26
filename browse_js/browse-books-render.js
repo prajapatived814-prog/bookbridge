@@ -60,7 +60,8 @@ function renderBooks(bookList = books) {
                     <img
                         src="${book.image}"
                         alt="${book.title}"
-                        class="book-image">
+                        class="book-image"
+                        onerror="if(!this.dataset.tried){this.dataset.tried='1'; this.src='./'+'${book.image}';}">
 
                     <div class="book-content">
 
