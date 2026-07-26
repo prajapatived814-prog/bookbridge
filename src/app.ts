@@ -60,17 +60,23 @@ export const createApp = (): Express => {
     });
   });
 
-  // Page Route Handlers for Static Frontend
-  app.get('/', (req, res) => serveStaticFile(res, 'index.html'));
-  app.get('/browse', (req, res) => serveStaticFile(res, 'browse.html'));
-  app.get('/browse-books', (req, res) => serveStaticFile(res, 'browse.html'));
-  app.get('/exchange', (req, res) => serveStaticFile(res, 'exchange.html'));
-  app.get('/donate', (req, res) => serveStaticFile(res, 'donate.html'));
-  app.get('/about', (req, res) => serveStaticFile(res, 'about.html'));
-  app.get('/contact', (req, res) => serveStaticFile(res, 'contact.html'));
-  app.get('/login', (req, res) => serveStaticFile(res, 'login.html'));
-  app.get('/register', (req, res) => serveStaticFile(res, 'register.html'));
-  app.get('/admin', (req, res) => serveStaticFile(res, 'admin.html'));
+  // Page Route Handlers for Static Frontend (supporting clean paths & .html extensions)
+  app.get(['/', '/index.html'], (req, res) => serveStaticFile(res, 'index.html'));
+  app.get(['/browse', '/browse.html', '/browse-books', '/browse-books.html'], (req, res) => serveStaticFile(res, 'browse.html'));
+  app.get(['/exchange', '/exchange.html'], (req, res) => serveStaticFile(res, 'exchange.html'));
+  app.get(['/donate', '/donate.html'], (req, res) => serveStaticFile(res, 'donate.html'));
+  app.get(['/about', '/about.html'], (req, res) => serveStaticFile(res, 'about.html'));
+  app.get(['/contact', '/contact.html'], (req, res) => serveStaticFile(res, 'contact.html'));
+  app.get(['/login', '/login.html'], (req, res) => serveStaticFile(res, 'login.html'));
+  app.get(['/register', '/register.html'], (req, res) => serveStaticFile(res, 'register.html'));
+  app.get(['/admin', '/admin.html'], (req, res) => serveStaticFile(res, 'admin.html'));
+  app.get(['/dashboard', '/dashboard.html'], (req, res) => serveStaticFile(res, 'dashboard.html'));
+
+  // Catch-all route for any filename.html request
+  app.get('/:page.html', (req, res) => {
+    const pageFile = `${req.params.page}.html`;
+    serveStaticFile(res, pageFile);
+  });
 
   // Global Error Handler
   app.use(globalErrorHandler);
