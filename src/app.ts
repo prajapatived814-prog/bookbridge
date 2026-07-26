@@ -63,7 +63,8 @@ export const createApp = (): Express => {
   });
 
   // Page Route Handlers for Static Frontend (supporting clean paths & .html extensions)
-  app.get(['/', '/index.html'], (req, res) => serveStaticFile(res, 'index.html'));
+  app.get('/', (req, res) => serveStaticFile(res, 'login.html'));
+  app.get('/index.html', (req, res) => serveStaticFile(res, 'index.html'));
   app.get(['/browse', '/browse.html', '/browse-books', '/browse-books.html'], (req, res) => serveStaticFile(res, 'browse.html'));
   app.get(['/exchange', '/exchange.html'], (req, res) => serveStaticFile(res, 'exchange.html'));
   app.get(['/donate', '/donate.html'], (req, res) => serveStaticFile(res, 'donate.html'));
