@@ -51,14 +51,16 @@ try {
 const serveStaticFile = (res, filename) => {
   const candidates = [
     path.resolve(process.cwd(), filename),
+    path.resolve(process.cwd(), 'dist', filename),
     path.resolve(__dirname, filename),
     path.resolve(__dirname, '..', filename),
-    path.resolve(__dirname, '..', '..', filename)
+    path.resolve(__dirname, '..', '..', filename),
+    path.resolve(__dirname, '..', '..', '..', filename)
   ];
 
   for (const filePath of candidates) {
     try {
-      if (fs.existsSync(filePath)) {
+      if (fs.existsSync(filePath) && fs.statSync(filePath).isFile()) {
         const htmlContent = fs.readFileSync(filePath, 'utf8');
         res.setHeader('Content-Type', 'text/html; charset=utf-8');
         return res.status(200).send(htmlContent);
