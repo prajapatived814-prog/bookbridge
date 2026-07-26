@@ -86,6 +86,9 @@ loginForm.addEventListener("submit", function (e) {
     // Redirect
 
     // Login successful
+    if (typeof incrementLiveStat === "function") {
+        incrementLiveStat("students", 1);
+    }
     alert("Login Successful!");
     window.location.href = "browse.html";
 

@@ -115,6 +115,12 @@ document.addEventListener("DOMContentLoaded", () => {
                 console.error("Failed to save book to localStorage:", err);
             }
 
+            // Increment Live Counter Stats (Books & Exchanges)
+            if (typeof incrementLiveStat === "function") {
+                incrementLiveStat("books", 1);
+                incrementLiveStat("exchanges", 1);
+            }
+
             // Re-render books grid
             if (typeof applyFilters === "function") {
                 applyFilters();
