@@ -26,8 +26,14 @@ function renderBooks(bookList = books) {
 
         booksContainer.innerHTML = `
             <div class="col-12 text-center py-5">
-                <h4 class="text-muted">No Books Found</h4>
-                <p>Try changing your search or filters.</p>
+                <div class="mb-3">
+                    <i class="bi bi-book fs-1 text-muted"></i>
+                </div>
+                <h4 class="text-muted fw-bold">No Books Found</h4>
+                <p class="text-muted">No books match your active search or filter criteria.</p>
+                <button class="btn btn-success btn-sm mt-2 fw-semibold" onclick="if(typeof clearFilters === 'function') clearFilters();">
+                    <i class="bi bi-arrow-counterclockwise me-1"></i> Reset Filters & Show All Books
+                </button>
             </div>
         `;
 

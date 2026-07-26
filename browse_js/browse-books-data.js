@@ -337,13 +337,17 @@ const books = [
 ========================================== */
 try {
     const adminEdited = JSON.parse(localStorage.getItem("admin_edited_catalog") || "[]");
-    if (Array.isArray(adminEdited) && adminEdited.length > 0) {
+    if (Array.isArray(adminEdited) && adminEdited.length > 0 && adminEdited[0] && adminEdited[0].title) {
         books.length = 0;
         books.push(...adminEdited);
     } else {
         const userUploaded = JSON.parse(localStorage.getItem("user_uploaded_books") || "[]");
         if (Array.isArray(userUploaded) && userUploaded.length > 0) {
-            books.unshift(...userUploaded);
+            userUploaded.forEach(ub => {
+                if (ub && ub.id && !books.some(b => b.id === ub.id)) {
+                    books.unshift(ub);
+                }
+            });
         }
     }
 } catch (err) {

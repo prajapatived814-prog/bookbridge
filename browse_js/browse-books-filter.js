@@ -13,24 +13,25 @@ function applyFilters() {
     let filteredBooks = [...books];
 
     /* ==========================================
-       Get Search Value
+       Get Search Value & Selected Filters
     ========================================== */
+    const searchInput = document.getElementById("searchInput");
+    const searchValue = searchInput ? searchInput.value.toLowerCase().trim() : "";
 
-    const searchValue = document
-        .getElementById("searchInput")
-        .value
-        .toLowerCase()
-        .trim();
+    const categoryEl = document.getElementById("categoryFilter");
+    const category = categoryEl ? categoryEl.value : "";
 
-    /* ==========================================
-       Get Selected Filter Values
-    ========================================== */
+    const departmentEl = document.getElementById("departmentFilter");
+    const department = departmentEl ? departmentEl.value : "";
 
-    const category = document.getElementById("categoryFilter").value;
-    const department = document.getElementById("departmentFilter").value;
-    const semester = document.getElementById("semesterFilter").value;
-    const condition = document.getElementById("conditionFilter").value;
-    const maxPrice = Number(document.getElementById("priceRange").value);
+    const semesterEl = document.getElementById("semesterFilter");
+    const semester = semesterEl ? semesterEl.value : "";
+
+    const conditionEl = document.getElementById("conditionFilter");
+    const condition = conditionEl ? conditionEl.value : "";
+
+    const priceRangeEl = document.getElementById("priceRange");
+    const maxPrice = (priceRangeEl && !isNaN(Number(priceRangeEl.value)) && Number(priceRangeEl.value) > 0) ? Number(priceRangeEl.value) : 2000;
 
     /* ==========================================
        Search Filter
