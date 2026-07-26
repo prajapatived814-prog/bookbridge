@@ -333,6 +333,18 @@ const books = [
 ];
 
 /* ==========================================
+   Load User Uploaded Books from LocalStorage
+========================================== */
+try {
+    const userUploaded = JSON.parse(localStorage.getItem("user_uploaded_books") || "[]");
+    if (Array.isArray(userUploaded) && userUploaded.length > 0) {
+        books.unshift(...userUploaded);
+    }
+} catch (err) {
+    console.error("Failed to load user uploaded books:", err);
+}
+
+/* ==========================================
    End of Book Data
 ========================================== */
 

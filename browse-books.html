@@ -146,12 +146,14 @@
                         Find textbooks, reference books and study materials shared by students across different departments. Buy affordable books or discover books donated by seniors.
                 </p>
 
-                    <a href="#books-section"
-                        class="btn btn-success btn-lg mt-3">
-
-                        Explore Books
-
-                    </a>
+                    <div class="d-flex gap-3 flex-wrap mt-3">
+                        <a href="#books-section" class="btn btn-success btn-lg">
+                            Explore Books
+                        </a>
+                        <button class="btn btn-outline-success btn-lg" type="button" data-bs-toggle="modal" data-bs-target="#uploadBookModal">
+                            <i class="bi bi-cloud-arrow-up me-2"></i> Upload & Exchange Offer
+                        </button>
+                    </div>
 
                 </div>
 
@@ -641,6 +643,141 @@
 </div>
 
 
+    <!-- ==========================================
+         Upload & Exchange Book Modal
+    ========================================== -->
+    <div class="modal fade" id="uploadBookModal" tabindex="-1" aria-labelledby="uploadBookModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-lg modal-dialog-centered">
+            <div class="modal-content shadow-lg border-0">
+                <div class="modal-header bg-success text-white">
+                    <h4 class="modal-title fw-bold" id="uploadBookModalLabel">
+                        <i class="bi bi-cloud-arrow-up-fill me-2"></i> Upload Book & Exchange Offer
+                    </h4>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <form id="uploadBookForm">
+                    <div class="modal-body p-4">
+                        <div class="row g-3">
+                            <!-- Book Title -->
+                            <div class="col-md-6">
+                                <label for="uploadTitle" class="form-label fw-semibold">Book Title <span class="text-danger">*</span></label>
+                                <input type="text" id="uploadTitle" class="form-control" placeholder="e.g. Computer Programming" required>
+                            </div>
+
+                            <!-- Author -->
+                            <div class="col-md-6">
+                                <label for="uploadAuthor" class="form-label fw-semibold">Author / Publisher <span class="text-danger">*</span></label>
+                                <input type="text" id="uploadAuthor" class="form-control" placeholder="e.g. Atul Prakashan" required>
+                            </div>
+
+                            <!-- Department -->
+                            <div class="col-md-4">
+                                <label for="uploadDepartment" class="form-label fw-semibold">Department <span class="text-danger">*</span></label>
+                                <select id="uploadDepartment" class="form-select" required>
+                                    <option value="">Select Department</option>
+                                    <option>Computer Engineering</option>
+                                    <option>Information Technology</option>
+                                    <option>Civil Engineering</option>
+                                    <option>Mechanical Engineering</option>
+                                    <option>Electrical Engineering</option>
+                                    <option>ICT</option>
+                                    <option>Printing Technology</option>
+                                    <option>Textile Manufacturing Technology</option>
+                                    <option>Textile Processing Technology</option>
+                                    <option>Mathematics</option>
+                                    <option>Science & Humanities</option>
+                                </select>
+                            </div>
+
+                            <!-- Semester -->
+                            <div class="col-md-4">
+                                <label for="uploadSemester" class="form-label fw-semibold">Semester <span class="text-danger">*</span></label>
+                                <select id="uploadSemester" class="form-select" required>
+                                    <option value="">Select Semester</option>
+                                    <option value="1">Sem 1</option>
+                                    <option value="2">Sem 2</option>
+                                    <option value="3">Sem 3</option>
+                                    <option value="4">Sem 4</option>
+                                    <option value="5">Sem 5</option>
+                                    <option value="6">Sem 6</option>
+                                </select>
+                            </div>
+
+                            <!-- Category -->
+                            <div class="col-md-4">
+                                <label for="uploadCategory" class="form-label fw-semibold">Category <span class="text-danger">*</span></label>
+                                <select id="uploadCategory" class="form-select" required>
+                                    <option value="">Select Category</option>
+                                    <option>Programming</option>
+                                    <option>Mathematics</option>
+                                    <option>Science</option>
+                                    <option>Engineering</option>
+                                    <option>Electronics</option>
+                                    <option>Networking</option>
+                                    <option>Communication Skills</option>
+                                    <option>Others</option>
+                                </select>
+                            </div>
+
+                            <!-- Listing Type -->
+                            <div class="col-md-4">
+                                <label for="uploadType" class="form-label fw-semibold">Offer Type <span class="text-danger">*</span></label>
+                                <select id="uploadType" class="form-select" required>
+                                    <option value="Sell">Sell / Exchange Offer</option>
+                                    <option value="Donate">Donate (Free)</option>
+                                </select>
+                            </div>
+
+                            <!-- Original MRP -->
+                            <div class="col-md-4" id="mrpContainer">
+                                <label for="uploadOriginalPrice" class="form-label fw-semibold">Original MRP (₹) <span class="text-danger">*</span></label>
+                                <input type="number" id="uploadOriginalPrice" class="form-control" placeholder="e.g. 500" min="10" value="500">
+                            </div>
+
+                            <!-- Book Condition -->
+                            <div class="col-md-4">
+                                <label for="uploadCondition" class="form-label fw-semibold">Condition <span class="text-danger">*</span></label>
+                                <select id="uploadCondition" class="form-select" required>
+                                    <option value="Like New">Like New (80% MRP Value)</option>
+                                    <option value="Excellent">Excellent (65% MRP Value)</option>
+                                    <option value="Good" selected>Good (50% MRP Value)</option>
+                                    <option value="Fair">Fair (35% MRP Value)</option>
+                                </select>
+                            </div>
+
+                            <!-- Exchange Price Calculator Output -->
+                            <div class="col-12" id="priceCalculatorBox">
+                                <div class="p-3 bg-light rounded border d-flex justify-content-between align-items-center">
+                                    <div>
+                                        <h6 class="mb-1 text-success fw-bold"><i class="bi bi-lightning-charge-fill me-1"></i> Exchange Offer Price Calculator</h6>
+                                        <small class="text-muted" id="priceCalcExplain">Based on condition "Good" (50% of MRP)</small>
+                                    </div>
+                                    <div class="text-end">
+                                        <span class="fs-3 fw-bold text-success" id="calculatedPrice">₹250</span>
+                                        <input type="hidden" id="finalPrice" value="250">
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Cover Image Upload -->
+                            <div class="col-12">
+                                <label for="uploadImageFile" class="form-label fw-semibold">Book Cover Photo <span class="text-danger">*</span></label>
+                                <input type="file" id="uploadImageFile" class="form-control" accept="image/*" required>
+                                <div id="imagePreviewContainer" class="mt-3 text-center d-none">
+                                    <img id="imagePreview" src="" alt="Book Preview" class="img-thumbnail" style="max-height: 180px; object-fit: contain;">
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="modal-footer bg-light">
+                        <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Cancel</button>
+                        <button type="submit" class="btn btn-success fw-semibold"><i class="bi bi-plus-circle me-1"></i> Add Book to Catalog</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
 
 
         <!-- ===================== Footer ===================== -->
@@ -771,6 +908,9 @@
 
 <!-- Sort Function -->
 <script src="browse_js/browse-books-sort.js"></script>
+
+<!-- Upload & Exchange Offer Logic -->
+<script src="browse_js/browse-books-upload.js"></script>
 
 <!-- Main JavaScript -->
 <script src="browse_js/browse-books.js"></script>
