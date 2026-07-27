@@ -3,23 +3,23 @@
 ========================================== */
 
 const DEFAULT_STATS = {
-    students: 0,
-    books: 0,
-    exchanges: 0
+    students: 10480,
+    books: 50210,
+    exchanges: 8950
 };
 
-// Retrieve current live stats from LocalStorage (starting from 0)
+// Retrieve current live stats from LocalStorage (starting from baseline)
 function getLiveStats() {
     try {
         const stored = JSON.parse(localStorage.getItem("bookbridge_live_stats") || "null");
-        if (stored && typeof stored === "object") {
-            const customBooks = JSON.parse(localStorage.getItem("user_uploaded_books") || "[]");
-            const extraBooks = Array.isArray(customBooks) ? customBooks.length : 0;
+        const customBooks = JSON.parse(localStorage.getItem("user_uploaded_books") || "[]");
+        const extraBooks = Array.isArray(customBooks) ? customBooks.length : 0;
 
+        if (stored && typeof stored === "object") {
             return {
-                students: Math.max(0, Number(stored.students) || 0),
-                books: Math.max(0, (Number(stored.books) || 0) + extraBooks),
-                exchanges: Math.max(0, Number(stored.exchanges) || 0)
+                students: Math.max(DEFAULT_STATS.students, Number(stored.students) || DEFAULT_STATS.students),
+                books: Math.max(DEFAULT_STATS.books, (Number(stored.books) || DEFAULT_STATS.books) + extraBooks),
+                exchanges: Math.max(DEFAULT_STATS.exchanges, Number(stored.exchanges) || DEFAULT_STATS.exchanges)
             };
         }
     } catch (e) {
@@ -75,10 +75,10 @@ function updateLiveStatsUI() {
 
     // Select all elements with data-stat-type or data-count attribute
     document.querySelectorAll("[data-stat-type], .hero-stat-value, .stat-value").forEach(el => {
-        const type = el.getAttribute("data-stat-type") || 
-                     (el.nextElementSibling && el.nextElementSibling.textContent.includes("Student") ? "students" :
-                      el.nextElementSibling && el.nextElementSibling.textContent.includes("Book") ? "books" :
-                      el.nextElementSibling && el.nextElementSibling.textContent.includes("Exchange") ? "exchanges" : null);
+        const type = el.getAttribute("data-stat-type") ||
+            (el.nextElementSibling && el.nextElementSibling.textContent.includes("Student") ? "students" :
+                el.nextElementSibling && el.nextElementSibling.textContent.includes("Book") ? "books" :
+                    el.nextElementSibling && el.nextElementSibling.textContent.includes("Exchange") ? "exchanges" : null);
 
         if (type && stats[type] !== undefined) {
             const targetVal = stats[type];

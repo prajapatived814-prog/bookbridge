@@ -419,6 +419,33 @@ async function initHomePage() {
   if (!grid) return;
   const books = await window.BookAPI.getBooks();
   await renderBooksGrid(grid, books.slice(0, 8), 'View Details');
+
+  // Tab filters for home page popular books
+  const tabsContainer = document.getElementById('homeBookTabs');
+  if (tabsContainer) {
+    const tabs = tabsContainer.querySelectorAll('.home-tab-pill');
+    tabs.forEach(tab => {
+      tab.addEventListener('click', async () => {
+        tabs.forEach(t => t.classList.remove('active'));
+        tab.classList.add('active');
+
+        const filter = tab.dataset.filter;
+        let filtered = [...books];
+
+        if (filter === 'popular') {
+          filtered = filtered.filter(b => (b.rating || 0) >= 4.7);
+        } else if (filter === 'exchange') {
+          filtered = filtered.filter(b => b.mode === 'exchange');
+        } else if (filter === 'donate') {
+          filtered = filtered.filter(b => b.mode === 'donate' || b.price === 0);
+        } else if (filter !== 'all') {
+          filtered = filtered.filter(b => (b.branch || '').toUpperCase() === filter.toUpperCase() || (b.genre || '').toLowerCase().includes(filter.toLowerCase()));
+        }
+
+        await renderBooksGrid(grid, filtered.slice(0, 8), 'View Details');
+      });
+    });
+  }
 }
 
 /* 🔍 BROWSE */

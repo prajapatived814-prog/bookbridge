@@ -68,7 +68,7 @@ const SEED_BOOKS = [
     description: 'Official GTU Practical Lab Manual from RCTI Computer Dept portal. Contains 20+ completed C practical programs on Stacks, Queues, Linked Lists, Trees, and Sorting.',
     pdfUrl: 'https://webrcticomp.wixsite.com/rcticomputer',
     contactPreference: 'Both',
-    cover: 'https://images.unsplash.com/photo-1515879218367-8466d910auj7?auto=format&fit=crop&w=400&q=80',
+    cover: 'https://images.unsplash.com/photo-1515879218367-8466d910a373?auto=format&fit=crop&w=400&q=80',
     seller: { id: 'usr-admin', name: 'RCTI Comp Dept Lab Admin', rating: 5.0, email: 'admin@rcti.ac.in', whatsapp: '+919876543210', role: 'admin' },
     location: 'RCTI Computer Lab 1 & 2',
     status: 'Available',
@@ -412,7 +412,7 @@ class OfficialRCTIDatabase {
     const allMsgs = JSON.parse(localStorage.getItem(STORAGE_KEY_MESSAGES) || '[]');
     if (!currentUser) return [];
 
-    return allMsgs.filter(m => 
+    return allMsgs.filter(m =>
       (m.senderEmail === currentUser.email && m.receiverEmail === otherUserEmail) ||
       (m.receiverEmail === currentUser.email && m.senderEmail === otherUserEmail)
     );
@@ -486,7 +486,7 @@ class OfficialRCTIDatabase {
 
     if (query && query.trim() !== '') {
       const q = query.toLowerCase().trim();
-      books = books.filter(b => 
+      books = books.filter(b =>
         (b.title || '').toLowerCase().includes(q) ||
         (b.author || '').toLowerCase().includes(q) ||
         (b.genre || '').toLowerCase().includes(q) ||
