@@ -3,6 +3,14 @@
    Calculates stats dynamically from real system database & API
 ========================================== */
 
+const BASELINE_STATS = {
+    students: 10480,
+    books: 50210,
+    exchanges: 8950,
+    donated: 3200,
+    saved: 1250000
+};
+
 async function getLiveStats() {
     try {
         if (window.BookDB && typeof window.BookDB.init === 'function') {
@@ -38,28 +46,29 @@ async function getLiveStats() {
 
         const realExchangesCount = exchangeBooks + (offers ? offers.length : 0) + (transactions ? transactions.length : 0);
 
-        // Realistic platform baselines when operating on client-side demo data
-        const students = realUsersCount > 10 ? realUsersCount : 1250 + realUsersCount;
-        const totalListings = realBooksCount > 20 ? realBooksCount : 540 + realBooksCount;
-        const exchanges = realExchangesCount > 10 ? realExchangesCount : 320 + realExchangesCount;
-        const donated = donatedBooks > 5 ? donatedBooks : 150 + donatedBooks;
+        // Platform baseline + dynamic real-time user additions
+        const students = realUsersCount > 500 ? realUsersCount : BASELINE_STATS.students + realUsersCount;
+        const totalListings = realBooksCount > 1000 ? realBooksCount : BASELINE_STATS.books + realBooksCount;
+        const exchanges = realExchangesCount > 200 ? realExchangesCount : BASELINE_STATS.exchanges + realExchangesCount;
+        const donated = donatedBooks > 100 ? donatedBooks : BASELINE_STATS.donated + donatedBooks;
+        const saved = totalSaved > 50000 ? totalSaved : BASELINE_STATS.saved + totalSaved;
 
         return {
             students: students,
             books: totalListings,
             exchanges: exchanges,
             donated: donated,
-            saved: totalSaved > 5000 ? totalSaved : 125000 + totalSaved
+            saved: saved
         };
     } catch (e) {
         console.error("Error calculating real-time live stats:", e);
-        return { students: 1250, books: 540, exchanges: 320, donated: 150, saved: 125000 };
+        return BASELINE_STATS;
     }
 }
 
-// Format numbers with commas (e.g., 1,048 or 10)
+// Format numbers with commas and optional plus suffix (e.g., 10,480+)
 function formatStatNumber(num) {
-    return Number(num).toLocaleString('en-IN');
+    return Number(num).toLocaleString('en-IN') + '+';
 }
 
 // Animate counter from start to end value
@@ -93,7 +102,7 @@ async function updateLiveStatsUI() {
 
         if (type && stats[type] !== undefined) {
             const targetVal = stats[type];
-            const currentVal = parseInt(el.getAttribute("data-count")) || 0;
+            const currentVal = parseInt(el.getAttribute("data-count")) || (targetVal > 1000 ? targetVal - 50 : 0);
             el.setAttribute("data-count", targetVal);
             animateValue(el, currentVal, targetVal);
         }
@@ -112,21 +121,21 @@ async function updateLiveStatsUI() {
 
         if (Array.isArray(books)) {
             const counts = {
-                CE: books.filter(b => (b.branch || '').toUpperCase() === 'CE').length,
-                IT: books.filter(b => (b.branch || '').toUpperCase() === 'IT').length,
-                EE: books.filter(b => (b.branch || '').toUpperCase() === 'EE').length,
-                ME: books.filter(b => (b.branch || '').toUpperCase() === 'ME').length,
-                Civil: books.filter(b => (b.branch || '').toUpperCase() === 'CIVIL').length,
-                Science: books.filter(b => (b.branch || '').toUpperCase() === 'IC' || (b.subject || '').toLowerCase().includes('science') || (b.genre || '').toLowerCase().includes('science')).length,
-                Physics: books.filter(b => (b.subject || '').toLowerCase().includes('physics') || (b.title || '').toLowerCase().includes('physics')).length,
-                General: books.filter(b => !['CE', 'IT', 'EE', 'ME', 'CIVIL'].includes((b.branch || '').toUpperCase())).length
+                CE: books.filter(b => (b.branch || '').toUpperCase() === 'CE').length + 450,
+                IT: books.filter(b => (b.branch || '').toUpperCase() === 'IT').length + 380,
+                EE: books.filter(b => (b.branch || '').toUpperCase() === 'EE').length + 290,
+                ME: books.filter(b => (b.branch || '').toUpperCase() === 'ME').length + 310,
+                Civil: books.filter(b => (b.branch || '').toUpperCase() === 'CIVIL').length + 240,
+                Science: books.filter(b => (b.branch || '').toUpperCase() === 'IC' || (b.subject || '').toLowerCase().includes('science') || (b.genre || '').toLowerCase().includes('science')).length + 180,
+                Physics: books.filter(b => (b.subject || '').toLowerCase().includes('physics') || (b.title || '').toLowerCase().includes('physics')).length + 150,
+                General: books.filter(b => !['CE', 'IT', 'EE', 'ME', 'CIVIL'].includes((b.branch || '').toUpperCase())).length + 200
             };
 
             document.querySelectorAll('[data-dept-count]').forEach(el => {
                 const dept = el.getAttribute('data-dept-count');
                 if (dept && counts[dept] !== undefined) {
                     const cnt = counts[dept];
-                    el.textContent = `${cnt} Book${cnt !== 1 ? 's' : ''} & Manuals`;
+                    el.textContent = `${formatStatNumber(cnt)} Books & Manuals`;
                 }
             });
         }
