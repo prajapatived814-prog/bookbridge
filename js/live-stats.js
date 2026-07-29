@@ -5,9 +5,12 @@
 
 async function getLiveStats() {
     try {
+        if (window.BookDB && typeof window.BookDB.init === 'function') {
+            await window.BookDB.init();
+        }
+
         let users = [];
         let books = [];
-        let offers = [];
 
         if (window.BookAPI && typeof window.BookAPI.getAllUsers === 'function') {
             users = await window.BookAPI.getAllUsers();
@@ -20,18 +23,21 @@ async function getLiveStats() {
             books = JSON.parse(localStorage.getItem('rcti_gtu_lab_manual_books') || '[]');
         }
 
-        offers = JSON.parse(localStorage.getItem('rcti_gtu_offers') || '[]');
+        const offers = JSON.parse(localStorage.getItem('rcti_gtu_offers') || '[]');
+        const transactions = JSON.parse(localStorage.getItem('rcti_gtu_txs') || '[]');
 
         const totalStudents = Array.isArray(users) ? users.length : 0;
         const totalBooks = Array.isArray(books) ? books.length : 0;
-        const exchangeBooks = Array.isArray(books) ? books.filter(b => b.mode === 'exchange').length : 0;
+        const exchangeBooks = Array.isArray(books) ? books.filter(b => b.mode === 'exchange' || Boolean(b.exchangeFor)).length : 0;
         const donatedBooks = Array.isArray(books) ? books.filter(b => b.mode === 'donate' || b.price === 0).length : 0;
         const totalSaved = Array.isArray(books) ? books.reduce((sum, b) => sum + (parseFloat(b.original) || 300), 0) : 0;
+
+        const totalExchanges = exchangeBooks + offers.length + transactions.length;
 
         return {
             students: totalStudents,
             books: totalBooks,
-            exchanges: Math.max(exchangeBooks, offers.length),
+            exchanges: totalExchanges,
             donated: donatedBooks,
             saved: totalSaved
         };
