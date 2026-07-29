@@ -7,13 +7,6 @@ import os
 from pathlib import Path
 from datetime import timedelta
 
-# Load environment variables from .env file if present
-try:
-    from dotenv import load_dotenv
-    load_dotenv()
-except ImportError:
-    pass
-
 BASE_DIR = Path(__file__).resolve().parent.parent
 
 # Security Settings
