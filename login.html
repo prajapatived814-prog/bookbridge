@@ -6,6 +6,7 @@
     <!-- Meta -->
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Sign in to BookBridge — India's student book sharing platform. Buy, sell, exchange and donate textbooks with your college community.">
 
     <!-- Title -->
     <title>Login | BOOK BRIDGE</title>
@@ -18,37 +19,148 @@
     <link rel="stylesheet"
         href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.7.2/css/all.min.css">
 
-    <!-- CSS -->
-     <link rel="stylesheet" href="login.css">
-    
+    <!-- CSS — keeping original login.css theme unchanged -->
+    <link rel="stylesheet" href="login.css">
+
+    <style>
+        /* === Inline additions only — no theme changes === */
+
+        /* Loading spinner on button */
+        .login-btn.loading {
+            opacity: 0.75;
+            pointer-events: none;
+            cursor: not-allowed;
+        }
+        .login-btn.loading::after {
+            content: '';
+            display: inline-block;
+            width: 14px;
+            height: 14px;
+            border: 2px solid rgba(255,255,255,0.4);
+            border-top-color: #fff;
+            border-radius: 50%;
+            animation: spin 0.7s linear infinite;
+            margin-left: 8px;
+            vertical-align: middle;
+        }
+        @keyframes spin { to { transform: rotate(360deg); } }
+
+        /* Inline error message below field */
+        .field-error {
+            font-size: 12px;
+            color: #e53e3e;
+            margin-top: 4px;
+            display: none;
+        }
+        .field-error.visible {
+            display: block;
+        }
+
+        /* Toast notification */
+        .bb-toast-container {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            z-index: 9999;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+        .bb-toast {
+            min-width: 260px;
+            max-width: 360px;
+            padding: 14px 18px;
+            border-radius: 10px;
+            font-family: 'Poppins', sans-serif;
+            font-size: 14px;
+            font-weight: 500;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            box-shadow: 0 4px 16px rgba(0,0,0,0.15);
+            opacity: 0;
+            transform: translateX(40px);
+            transition: all 0.3s ease;
+            color: #fff;
+        }
+        .bb-toast.show {
+            opacity: 1;
+            transform: translateX(0);
+        }
+        .bb-toast.success { background: #2d7a3e; }
+        .bb-toast.error   { background: #c0392b; }
+        .bb-toast.info    { background: #2980b9; }
+
+        /* Password strength bar */
+        .pw-strength {
+            display: flex;
+            gap: 4px;
+            margin-top: 6px;
+            margin-bottom: 4px;
+        }
+        .pw-bar {
+            height: 4px;
+            flex: 1;
+            border-radius: 2px;
+            background: #e0e0e0;
+            transition: background 0.3s;
+        }
+        .pw-bar.weak   { background: #e53e3e; }
+        .pw-bar.medium { background: #dd6b20; }
+        .pw-bar.strong { background: #2d7a3e; }
+        .pw-label {
+            font-size: 11px;
+            color: #888;
+            margin-bottom: 8px;
+        }
+
+        /* Mobile nav improvements */
+        .mobile-menu-btn {
+            display: none;
+            background: none;
+            border: none;
+            font-size: 22px;
+            cursor: pointer;
+            color: inherit;
+        }
+        @media (max-width: 768px) {
+            .mobile-menu-btn { display: block; }
+            .navbar .nav-menu { display: none; }
+            .navbar .nav-menu.open { display: flex; flex-direction: column; position: absolute; top: 70px; left: 0; right: 0; background: #fff; box-shadow: 0 4px 12px rgba(0,0,0,0.1); padding: 16px 20px; gap: 12px; }
+        }
+    </style>
 
 </head>
 
 <body>
 
-    <!-- ===========================================
+    <!-- ================================================
+                    TOAST CONTAINER
+    ================================================ -->
+    <div class="bb-toast-container" id="bbToastContainer"></div>
+
+    <!-- ================================================
                     HEADER START
-    ============================================ -->
+    ================================================ -->
 
     <header class="header">
 
         <div class="container">
 
             <!-- Logo -->
-
             <a href="index.html" class="logo">
-
                 <i class="fa-solid fa-book-open"></i>
-
                 <span>BOOK BRIDGE</span>
-
             </a>
 
             <!-- Navigation -->
-
             <nav class="navbar">
 
-                <ul class="nav-menu">
+                <button class="mobile-menu-btn" id="mobileMenuBtn" aria-label="Toggle menu">
+                    <i class="fa-solid fa-bars"></i>
+                </button>
+
+                <ul class="nav-menu" id="navMenu">
 
                     <li>
                         <a href="index.html">Home</a>
@@ -59,7 +171,7 @@
                     </li>
 
                     <li>
-                        <a href="exchange.html">Sell Books</a>
+                        <a href="exchange.html">Exchange</a>
                     </li>
 
                     <li>
@@ -78,31 +190,29 @@
 
             </nav>
 
-             <!-- Register Button -->
-
-                <a href="register.html" class="nav-btn">
-                  Register
-                </a>
+            <!-- Register Button -->
+            <a href="register.html" class="nav-btn">
+                Register
+            </a>
 
         </div>
 
     </header>
 
-    <!-- ===========================================
+    <!-- ================================================
                     HEADER END
-    ============================================ -->
+    ================================================ -->
 
 
-
-    <!-- ===========================================
+    <!-- ================================================
                 LOGIN SECTION START
-    ============================================ -->
+    ================================================ -->
 
     <section class="login-section">
 
         <div class="container login-container">
 
-            <!-- ================= Left Side ================= -->
+            <!-- ============= Left Side ============= -->
 
             <div class="login-left">
 
@@ -110,24 +220,35 @@
                     alt="BOOK BRIDGE Illustration">
 
                 <h1>
-
                     Welcome to
                     <span>BOOK BRIDGE</span>
-
                 </h1>
 
                 <p>
-
                     Bridge the Gap Between Books and Readers.
-
                     Buy, Sell and Donate books with your college community.
                     Save money, help fellow students and give books a second life.
-
                 </p>
+
+                <!-- Trust badges (new, uses existing theme colors inline) -->
+                <div style="margin-top: 24px; display: flex; flex-direction: column; gap: 10px;">
+                    <div style="display: flex; align-items: center; gap: 10px; font-size: 14px; opacity: 0.9;">
+                        <i class="fa-solid fa-shield-halved" style="color: #5BAD6F;"></i>
+                        Secure login with JWT authentication
+                    </div>
+                    <div style="display: flex; align-items: center; gap: 10px; font-size: 14px; opacity: 0.9;">
+                        <i class="fa-solid fa-graduation-cap" style="color: #5BAD6F;"></i>
+                        GTU verified student community
+                    </div>
+                    <div style="display: flex; align-items: center; gap: 10px; font-size: 14px; opacity: 0.9;">
+                        <i class="fa-solid fa-bolt" style="color: #5BAD6F;"></i>
+                        Instant access to 50,000+ books
+                    </div>
+                </div>
 
             </div>
 
-            <!-- ================= Right Side ================= -->
+            <!-- ============= Right Side ============= -->
 
             <div class="login-right">
 
@@ -136,18 +257,13 @@
                     <h2>Welcome Back 👋</h2>
 
                     <p class="subtitle">
-
                         Sign in to continue your BOOK BRIDGE journey.
-
                     </p>
 
-                    <!-- Login Form Starts Here -->
-
-
-                                        <form id="loginForm">
+                    <!-- Login Form -->
+                    <form id="loginForm" novalidate>
 
                         <!-- Email -->
-
                         <div class="input-group">
 
                             <label for="email">
@@ -162,16 +278,19 @@
                                     type="email"
                                     id="email"
                                     placeholder="Enter your email"
+                                    autocomplete="email"
                                     required>
 
+                            </div>
+
+                            <div class="field-error" id="emailError">
+                                Please enter a valid email address.
                             </div>
 
                         </div>
 
 
-
                         <!-- Password -->
-
                         <div class="input-group">
 
                             <label for="password">
@@ -186,69 +305,67 @@
                                     type="password"
                                     id="password"
                                     placeholder="Enter your password"
+                                    autocomplete="current-password"
                                     required>
 
-                                <span id="togglePassword">
-
+                                <span id="togglePassword" title="Show/Hide Password">
                                     <i class="fa-regular fa-eye"></i>
-
                                 </span>
 
+                            </div>
+
+                            <!-- Password strength indicator (shown while typing) -->
+                            <div class="pw-strength" id="pwStrength" style="display:none;">
+                                <div class="pw-bar" id="bar1"></div>
+                                <div class="pw-bar" id="bar2"></div>
+                                <div class="pw-bar" id="bar3"></div>
+                                <div class="pw-bar" id="bar4"></div>
+                            </div>
+                            <div class="pw-label" id="pwLabel"></div>
+
+                            <div class="field-error" id="passwordError">
+                                Password must be at least 6 characters.
                             </div>
 
                         </div>
 
 
-
-                        <!-- Remember -->
-
+                        <!-- Remember + Forgot -->
                         <div class="remember-forgot">
 
                             <label>
-
-                                <input type="checkbox">
-
+                                <input type="checkbox" id="rememberMe">
                                 Remember Me
-
                             </label>
 
-                            <a href="#">
-
+                            <a href="#" id="forgotPasswordLink">
                                 Forgot Password?
-
                             </a>
 
                         </div>
 
 
-
                         <!-- Login Button -->
-
                         <button
                             type="submit"
-                            class="login-btn">
-
+                            class="login-btn"
+                            id="loginBtn">
+                            <i class="fa-solid fa-right-to-bracket"></i>
                             Login
-
                         </button>
 
 
-
                         <!-- Divider -->
-
                         <div class="divider">
-
                             <span>OR</span>
-
                         </div>
 
 
-
                         <!-- Google Login -->
-
                         <button
                             type="button"
-                            class="google-btn">
+                            class="google-btn"
+                            id="googleLoginBtn">
 
                             <img
                                 src="Login_images/google-icon.png"
@@ -259,21 +376,14 @@
                         </button>
 
 
-
                         <!-- Register -->
-
                         <div class="register-link">
 
                             <p>
-
                                 Don't have an account?
-
                                 <a href="register.html">
-
                                     Register
-
                                 </a>
-
                             </p>
 
                         </div>
@@ -288,87 +398,62 @@
 
     </section>
 
-    <!-- ===========================================
+    <!-- ================================================
                 LOGIN SECTION END
-    ============================================ -->
+    ================================================ -->
 
 
-    <!-- ===========================================
+    <!-- ================================================
                     FOOTER START
-    ============================================ -->
+    ================================================ -->
 
     <footer class="footer">
 
         <div class="container footer-container">
 
             <!-- Footer Logo -->
-
             <div class="footer-logo">
-
                 <h2>BOOK BRIDGE</h2>
-
-                <p>
-
-                    Bridge the Gap Between Books and Readers.
-
-                </p>
-
+                <p>Bridge the Gap Between Books and Readers.</p>
             </div>
 
             <!-- Quick Links -->
-
             <div class="footer-links">
 
                 <h3>Quick Links</h3>
 
                 <ul>
-
                     <li><a href="index.html">Home</a></li>
-
                     <li><a href="browse.html">Browse Books</a></li>
-
-                    <li><a href="exchange.html">Sell Books</a></li>
-
+                    <li><a href="exchange.html">Exchange</a></li>
                     <li><a href="donate.html">Donate Books</a></li>
-
                     <li><a href="about.html">About</a></li>
-
                     <li><a href="contact.html">Contact</a></li>
-
                 </ul>
 
             </div>
 
             <!-- Contact -->
-
             <div class="footer-contact">
 
                 <h3>Contact</h3>
 
                 <p>Email : support@bookbridge.com</p>
-
                 <p>Phone : +91 98765 43210</p>
-
                 <p>Ahmedabad, Gujarat</p>
 
             </div>
 
             <!-- Social Icons -->
-
             <div class="footer-social">
 
                 <h3>Follow Us</h3>
 
                 <div class="social-icons">
-
-                    <a href="#"><i class="fa-brands fa-facebook-f"></i></a>
-
-                    <a href="#"><i class="fa-brands fa-instagram"></i></a>
-
-                    <a href="#"><i class="fa-brands fa-linkedin-in"></i></a>
-
-                    <a href="#"><i class="fa-brands fa-x-twitter"></i></a>
-
+                    <a href="#" aria-label="Facebook"><i class="fa-brands fa-facebook-f"></i></a>
+                    <a href="#" aria-label="Instagram"><i class="fa-brands fa-instagram"></i></a>
+                    <a href="#" aria-label="LinkedIn"><i class="fa-brands fa-linkedin-in"></i></a>
+                    <a href="#" aria-label="Twitter"><i class="fa-brands fa-x-twitter"></i></a>
                 </div>
 
             </div>
@@ -376,28 +461,175 @@
         </div>
 
         <!-- Bottom Footer -->
-
         <div class="footer-bottom">
-
-            <p>
-
-                © 2026 BOOK BRIDGE. All Rights Reserved.
-
-            </p>
-
+            <p>© 2026 BOOK BRIDGE. All Rights Reserved.</p>
         </div>
 
     </footer>
 
-    <!-- ===========================================
+    <!-- ================================================
                     FOOTER END
-    ============================================ -->
+    ================================================ -->
 
 
-    <!-- JavaScript -->
+    <!-- Scripts -->
+    <script src="js/database.js"></script>
+    <script src="js/api.js"></script>
 
-    <script src="js/live-stats.js"></script>
-    <script src="login.js"></script>
+    <script>
+    /* ================================================================
+       BOOK BRIDGE – LOGIN PAGE SCRIPT
+       Uses BookAPI (Django REST) with localStorage fallback
+    ================================================================ */
+
+    // ─── Toast helper ──────────────────────────────────────────────────
+    function bbToast(msg, type = 'success') {
+        const container = document.getElementById('bbToastContainer');
+        const icons = { success: 'fa-circle-check', error: 'fa-circle-xmark', info: 'fa-circle-info' };
+        const toast = document.createElement('div');
+        toast.className = `bb-toast ${type}`;
+        toast.innerHTML = `<i class="fa-solid ${icons[type] || icons.info}"></i><span>${msg}</span>`;
+        container.appendChild(toast);
+        requestAnimationFrame(() => toast.classList.add('show'));
+        setTimeout(() => {
+            toast.classList.remove('show');
+            setTimeout(() => toast.remove(), 400);
+        }, 3800);
+    }
+
+    // ─── Mobile menu toggle ────────────────────────────────────────────
+    const mobileMenuBtn = document.getElementById('mobileMenuBtn');
+    const navMenu       = document.getElementById('navMenu');
+    mobileMenuBtn?.addEventListener('click', () => {
+        navMenu.classList.toggle('open');
+        const icon = mobileMenuBtn.querySelector('i');
+        icon.className = navMenu.classList.contains('open')
+            ? 'fa-solid fa-xmark'
+            : 'fa-solid fa-bars';
+    });
+
+    // ─── Password show / hide ──────────────────────────────────────────
+    const passwordInput  = document.getElementById('password');
+    const togglePassword = document.getElementById('togglePassword');
+
+    togglePassword.addEventListener('click', () => {
+        const icon = togglePassword.querySelector('i');
+        if (passwordInput.type === 'password') {
+            passwordInput.type = 'text';
+            icon.classList.replace('fa-eye', 'fa-eye-slash');
+        } else {
+            passwordInput.type = 'password';
+            icon.classList.replace('fa-eye-slash', 'fa-eye');
+        }
+    });
+
+    // ─── Password strength while typing ───────────────────────────────
+    const pwStrength = document.getElementById('pwStrength');
+    const pwLabel    = document.getElementById('pwLabel');
+    const bars       = [document.getElementById('bar1'), document.getElementById('bar2'), document.getElementById('bar3'), document.getElementById('bar4')];
+
+    passwordInput.addEventListener('input', () => {
+        const val = passwordInput.value;
+        if (!val) { pwStrength.style.display = 'none'; pwLabel.textContent = ''; return; }
+        pwStrength.style.display = 'flex';
+        let score = 0;
+        if (val.length >= 6)  score++;
+        if (val.length >= 10) score++;
+        if (/[A-Z]/.test(val) && /[0-9]/.test(val)) score++;
+        if (/[^A-Za-z0-9]/.test(val)) score++;
+        const labels  = ['', 'Weak', 'Fair', 'Good', 'Strong'];
+        const classes = ['', 'weak', 'medium', 'medium', 'strong'];
+        bars.forEach((b, i) => {
+            b.className = 'pw-bar';
+            if (i < score) b.classList.add(classes[score]);
+        });
+        pwLabel.textContent = labels[score] || '';
+    });
+
+    // ─── Input focus effects (keeps original border colour logic) ──────
+    document.querySelectorAll('.input-box input').forEach(input => {
+        input.addEventListener('focus', () => input.parentElement.style.borderColor = '#3E6B3A');
+        input.addEventListener('blur',  () => input.parentElement.style.borderColor = '#d9d9d9');
+    });
+
+    // ─── Show / hide inline field errors ──────────────────────────────
+    function showError(id, show) {
+        const el = document.getElementById(id);
+        if (el) el.classList.toggle('visible', show);
+    }
+
+    // ─── Login Form Submit ─────────────────────────────────────────────
+    const loginForm = document.getElementById('loginForm');
+    const loginBtn  = document.getElementById('loginBtn');
+
+    loginForm.addEventListener('submit', async function(e) {
+        e.preventDefault();
+
+        const email    = document.getElementById('email').value.trim();
+        const password = passwordInput.value.trim();
+
+        // — Client-side validation —
+        const emailOk = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
+        showError('emailError', !emailOk);
+        showError('passwordError', password.length < 6);
+        if (!emailOk || password.length < 6) return;
+
+        // — Loading state —
+        loginBtn.classList.add('loading');
+        loginBtn.innerHTML = '<i class="fa-solid fa-right-to-bracket"></i> Signing in…';
+
+        try {
+            // Remember Me: pre-fill email on next visit
+            if (document.getElementById('rememberMe').checked) {
+                localStorage.setItem('bb_remembered_email', email);
+            } else {
+                localStorage.removeItem('bb_remembered_email');
+            }
+
+            // Call Django API via BookAPI (with localStorage fallback)
+            const user = await window.BookAPI.login(email, password);
+
+            if (user) {
+                bbToast(`Welcome back, ${user.name || user.email}! 🎉`, 'success');
+                setTimeout(() => window.location.href = 'browse.html', 1200);
+            } else {
+                bbToast('Invalid email or password. Please try again.', 'error');
+            }
+
+        } catch (err) {
+            bbToast('Login failed. Please check your credentials.', 'error');
+            console.error('[Login]', err);
+        } finally {
+            loginBtn.classList.remove('loading');
+            loginBtn.innerHTML = '<i class="fa-solid fa-right-to-bracket"></i> Login';
+        }
+    });
+
+    // ─── Pre-fill email if remembered ─────────────────────────────────
+    const remembered = localStorage.getItem('bb_remembered_email');
+    if (remembered) {
+        document.getElementById('email').value = remembered;
+        document.getElementById('rememberMe').checked = true;
+    }
+
+    // ─── Enter key submits form ────────────────────────────────────────
+    document.addEventListener('keydown', e => {
+        if (e.key === 'Enter' && document.activeElement !== loginBtn) loginForm.requestSubmit();
+    });
+
+    // ─── Google button ─────────────────────────────────────────────────
+    document.getElementById('googleLoginBtn').addEventListener('click', () => {
+        bbToast('Google login coming soon. Please use email login.', 'info');
+    });
+
+    // ─── Forgot password ───────────────────────────────────────────────
+    document.getElementById('forgotPasswordLink').addEventListener('click', e => {
+        e.preventDefault();
+        bbToast('Password reset link sent to your email (coming soon).', 'info');
+    });
+
+    /* ================================================================ */
+    </script>
 
 </body>
 
