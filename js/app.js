@@ -585,6 +585,7 @@ async function initExchangePage() {
     const saved = await window.BookAPI.addBook(newBook);
     submitBtn.classList.remove('btn-loading');
     showToast(`"${saved?.title || newBook.title}" uploaded successfully!`, 'success');
+    if (window.updateLiveStatsUI) window.updateLiveStatsUI();
     modal?.classList.remove('active');
     form.reset();
     if (fileList) fileList.innerHTML = '';
