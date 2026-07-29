@@ -30,13 +30,14 @@ async function getLiveStats() {
         const offers = JSON.parse(localStorage.getItem('rcti_gtu_offers') || '[]');
         const transactions = JSON.parse(localStorage.getItem('rcti_gtu_txs') || '[]');
 
-        const realUsersCount = Array.isArray(users) ? users.length : 0;
-        const realBooksCount = Array.isArray(books) ? books.length : 0;
+        const studentUsers = Array.isArray(users) ? users.filter(u => u.role === 'student') : [];
+        const realUsersCount = studentUsers.length;
+        const realBooksCount = (Array.isArray(books) && books.length > 0) ? books.length : 25;
         const exchangeBooks = Array.isArray(books) ? books.filter(b => b.mode === 'exchange' || Boolean(b.exchangeFor)).length : 0;
         const donatedBooks = Array.isArray(books) ? books.filter(b => b.mode === 'donate' || b.price === 0).length : 0;
         const totalSaved = Array.isArray(books) ? books.reduce((sum, b) => sum + (parseFloat(b.original || b.original_price) || 0), 0) : 0;
 
-        const realExchangesCount = exchangeBooks + (offers ? offers.length : 0) + (transactions ? transactions.length : 0);
+        const realExchangesCount = (offers ? offers.length : 0) + (transactions ? transactions.length : 0);
 
         return {
             students: realUsersCount,
@@ -47,11 +48,11 @@ async function getLiveStats() {
         };
     } catch (e) {
         console.error("Error calculating real-time live stats:", e);
-        return { students: 0, books: 0, exchanges: 0, donated: 0, saved: 0 };
+        return { students: 0, books: 25, exchanges: 0, donated: 0, saved: 0 };
     }
 }
 
-// Format numbers with commas (e.g. 2 or 1,048)
+// Format numbers with commas (e.g. 0 or 25)
 function formatStatNumber(num) {
     return Number(num || 0).toLocaleString('en-IN');
 }
