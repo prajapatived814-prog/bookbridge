@@ -97,32 +97,9 @@ function setupScrollAnimations() {
 
 /* 🔢 COUNTER ANIMATIONS */
 function setupCounterAnimations() {
-  const observer = new IntersectionObserver((entries) => {
-    entries.forEach(entry => {
-      if (entry.isIntersecting) {
-        animateCounter(entry.target);
-        observer.unobserve(entry.target);
-      }
-    });
-  }, { threshold: 0.3 });
-
-  document.querySelectorAll('[data-count]').forEach(el => observer.observe(el));
-}
-
-function animateCounter(el) {
-  const target = parseInt(el.dataset.count);
-  const duration = 1500;
-  const start = performance.now();
-
-  function update(now) {
-    const progress = Math.min((now - start) / duration, 1);
-    const eased = 1 - Math.pow(1 - progress, 3);
-    const current = Math.floor(eased * target);
-    el.textContent = current.toLocaleString('en-IN');
-    if (progress < 1) requestAnimationFrame(update);
+  if (window.updateLiveStatsUI) {
+    window.updateLiveStatsUI();
   }
-
-  requestAnimationFrame(update);
 }
 
 /* 🎵 ACCORDION */
@@ -585,6 +562,7 @@ async function initExchangePage() {
     const saved = await window.BookAPI.addBook(newBook);
     submitBtn.classList.remove('btn-loading');
     showToast(`"${saved?.title || newBook.title}" uploaded successfully!`, 'success');
+    if (window.updateLiveStatsUI) window.updateLiveStatsUI();
     modal?.classList.remove('active');
     form.reset();
     if (fileList) fileList.innerHTML = '';
