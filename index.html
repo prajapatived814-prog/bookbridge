@@ -620,45 +620,13 @@
         })
         .catch(err => {
           console.warn('[Statistics API] Error fetching /api/statistics/:', err);
-          
-          // Try client-side database fallback if Django server is not reachable
-          if (window.BookDB && typeof window.BookDB.getAdminStats === 'function') {
-            window.BookDB.getAdminStats().then(stats => {
-              const fallbackStudents = stats.totalUsers || 0;
-              const fallbackBooks = stats.totalListings || 0;
-              const fallbackExchanges = (stats.activeSwaps || 0) + (stats.totalOffers || 0);
-
-              const targets = [
-                { el: activeStudentsEl, val: fallbackStudents },
-                { el: heroStudentsEl, val: fallbackStudents },
-                { el: booksListedEl, val: fallbackBooks },
-                { el: heroBooksEl, val: fallbackBooks },
-                { el: successfulExchangesEl, val: fallbackExchanges },
-                { el: heroExchangesEl, val: fallbackExchanges }
-              ];
-
-              targets.forEach(t => {
-                if (t.el) {
-                  t.el.classList.remove('stats-loading');
-                  animateCounterValue(t.el, t.val);
-                }
-              });
-            }).catch(() => {
-              [activeStudentsEl, booksListedEl, successfulExchangesEl, heroStudentsEl, heroBooksEl, heroExchangesEl].forEach(el => {
-                if (el) {
-                  el.classList.remove('stats-loading');
-                  el.textContent = '--';
-                }
-              });
-            });
-          } else {
-            [activeStudentsEl, booksListedEl, successfulExchangesEl, heroStudentsEl, heroBooksEl, heroExchangesEl].forEach(el => {
-              if (el) {
-                el.classList.remove('stats-loading');
-                el.textContent = '--';
-              }
-            });
-          }
+          // Requirement 9: Handle API errors gracefully. If the API fails, show "--"
+          [activeStudentsEl, booksListedEl, successfulExchangesEl, heroStudentsEl, heroBooksEl, heroExchangesEl].forEach(el => {
+            if (el) {
+              el.classList.remove('stats-loading');
+              el.textContent = '--';
+            }
+          });
         });
     }
 

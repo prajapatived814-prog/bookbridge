@@ -75,15 +75,17 @@ function animateValue(element, start, end, duration = 800) {
 
 // Update all stat counter elements on the page with real database metrics
 async function updateLiveStatsUI() {
+    // If page has dedicated API statistics fetcher elements (index.html), skip overwriting hero stats
+    if (document.getElementById('activeStudents') || document.getElementById('heroActiveStudents')) {
+        updateCategoryCountsOnly();
+        return;
+    }
+
     const stats = await getLiveStats();
 
-    // Select all elements with data-stat-type or data-count attribute
-    document.querySelectorAll("[data-stat-type], .hero-stat-value, .stat-value").forEach(el => {
-        const type = el.getAttribute("data-stat-type") ||
-            (el.nextElementSibling && el.nextElementSibling.textContent.includes("Student") ? "students" :
-                el.nextElementSibling && el.nextElementSibling.textContent.includes("Book") ? "books" :
-                    el.nextElementSibling && el.nextElementSibling.textContent.includes("Exchange") ? "exchanges" :
-                        el.nextElementSibling && el.nextElementSibling.textContent.includes("Donate") ? "donated" : null);
+    // Select all elements with data-stat-type attribute
+    document.querySelectorAll("[data-stat-type]").forEach(el => {
+        const type = el.getAttribute("data-stat-type");
 
         if (type && stats[type] !== undefined) {
             const targetVal = stats[type];
@@ -93,7 +95,10 @@ async function updateLiveStatsUI() {
         }
     });
 
-    // Update Category Counts dynamically if elements exist
+    updateCategoryCountsOnly();
+}
+
+async function updateCategoryCountsOnly() {
     try {
         let books = [];
         if (window.BookAPI && typeof window.BookAPI.getBooks === 'function') {
