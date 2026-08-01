@@ -57,20 +57,19 @@
       <aside class="sidebar">
         <div class="sidebar-section-title">Overview</div>
         <nav class="sidebar-nav">
-          <a href="#" class="sidebar-link active"><i class="fa-solid fa-chart-line"></i> Analytics</a>
-          <a href="#" class="sidebar-link"><i class="fa-solid fa-book"></i> Books</a>
-          <a href="#" class="sidebar-link"><i class="fa-solid fa-users"></i> Users</a>
+          <a href="#" class="sidebar-link active" data-admin-section="analytics"><i class="fa-solid fa-chart-line"></i> Analytics</a>
+          <a href="#" class="sidebar-link" data-admin-section="books"><i class="fa-solid fa-book"></i> Books</a>
+          <a href="#" class="sidebar-link" data-admin-section="users"><i class="fa-solid fa-users"></i> Users</a>
         </nav>
         <div class="sidebar-section-title">Management</div>
         <nav class="sidebar-nav">
-          <a href="#" class="sidebar-link"><i class="fa-solid fa-upload"></i> Uploads</a>
-          <a href="#" class="sidebar-link"><i class="fa-solid fa-flag"></i> Reports</a>
-          <a href="#" class="sidebar-link"><i class="fa-solid fa-bell"></i> Notifications</a>
+          <a href="browse.html" class="sidebar-link"><i class="fa-solid fa-magnifying-glass"></i> Browse Catalog</a>
+          <a href="exchange.html" class="sidebar-link"><i class="fa-solid fa-arrows-rotate"></i> Exchange</a>
         </nav>
-        <div class="sidebar-section-title">System</div>
+        <div class="sidebar-section-title">Quick</div>
         <nav class="sidebar-nav">
-          <a href="#" class="sidebar-link"><i class="fa-solid fa-gear"></i> Settings</a>
-          <a href="#" class="sidebar-link"><i class="fa-solid fa-chart-bar"></i> Activity Log</a>
+          <a href="index.html" class="sidebar-link"><i class="fa-solid fa-house"></i> View Site</a>
+          <a href="login.html" class="sidebar-link" id="adminSidebarLogout"><i class="fa-solid fa-right-from-bracket"></i> Logout</a>
         </nav>
       </aside>
 
@@ -105,29 +104,66 @@
           </div>
         </div>
 
-        <!-- DATA TABLE -->
-        <div class="card" style="padding: 24px;">
-          <div class="flex-between" style="margin-bottom: 20px; flex-wrap: wrap; gap: 12px;">
-            <h3>Resource Catalog</h3>
-            <button id="btnAdminAddBook" class="btn btn-primary btn-sm"><i class="fa-solid fa-plus"></i> Add Book</button>
-          </div>
+        <!-- ADMIN TABS -->
+        <div class="admin-tabs">
+          <button class="admin-tab-btn active" data-admin-tab="books"><i class="fa-solid fa-book"></i> Books</button>
+          <button class="admin-tab-btn" data-admin-tab="users"><i class="fa-solid fa-users"></i> Users</button>
+        </div>
 
-          <div class="data-table-wrap">
-            <table class="data-table">
-              <thead>
-                <tr>
-                  <th>ID / Code</th>
-                  <th>Book Title</th>
-                  <th>Department</th>
-                  <th>Type</th>
-                  <th>Status</th>
-                  <th style="text-align: right;">Actions</th>
-                </tr>
-              </thead>
-              <tbody id="adminBooksTableBody">
-                <!-- Dynamically populated -->
-              </tbody>
-            </table>
+        <!-- BOOKS TAB -->
+        <div id="adminTab-books" class="admin-content-tab active">
+          <div class="card" style="padding: 24px;">
+            <div class="flex-between" style="margin-bottom: 16px; flex-wrap: wrap; gap: 12px;">
+              <h3>Resource Catalog</h3>
+              <button id="btnAdminAddBook" class="btn btn-primary btn-sm"><i class="fa-solid fa-plus"></i> Add Book</button>
+            </div>
+            <div class="table-search-bar">
+              <input type="text" id="adminBookSearch" placeholder="Search books by title, author, code...">
+            </div>
+            <div class="data-table-wrap">
+              <table class="data-table">
+                <thead>
+                  <tr>
+                    <th>GTU Code</th>
+                    <th>Book Title</th>
+                    <th>Department</th>
+                    <th>Price</th>
+                    <th>Status</th>
+                    <th style="text-align: right;">Actions</th>
+                  </tr>
+                </thead>
+                <tbody id="adminBooksTableBody">
+                  <!-- Dynamically populated -->
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+
+        <!-- USERS TAB -->
+        <div id="adminTab-users" class="admin-content-tab">
+          <div class="card" style="padding: 24px;">
+            <div class="flex-between" style="margin-bottom: 16px;">
+              <h3>Registered Students</h3>
+              <span class="badge badge-primary" id="adminUserCount">Loading...</span>
+            </div>
+            <div class="admin-user-table-wrap">
+              <table class="data-table">
+                <thead>
+                  <tr>
+                    <th>Name</th>
+                    <th>Email</th>
+                    <th>Dept</th>
+                    <th>Role</th>
+                    <th>Enrollment</th>
+                    <th style="text-align:right;">Actions</th>
+                  </tr>
+                </thead>
+                <tbody id="adminUsersTableBody">
+                  <tr><td colspan="6" style="text-align:center;color:var(--color-gray);padding:24px;">Click Users tab to load...</td></tr>
+                </tbody>
+              </table>
+            </div>
           </div>
         </div>
       </div>
@@ -187,16 +223,127 @@
 
   <div class="toast-container" id="toastContainer"></div>
 
+  <!-- ADMIN ADD BOOK MODAL -->
+  <div class="modal-overlay" id="adminAddBookModal">
+    <div class="modal-card" style="max-width: 620px;">
+      <div class="modal-header">
+        <h3><i class="fa-solid fa-plus" style="color: var(--color-primary);"></i> Add New Book</h3>
+        <button class="modal-close" id="closeAdminAddBookModal"><i class="fa-solid fa-xmark"></i></button>
+      </div>
+      <form id="adminAddBookForm" style="padding: 0;">
+        <div class="form-row-2" style="margin-bottom: 14px;">
+          <div class="form-group">
+            <label class="form-label">Book Title *</label>
+            <input type="text" id="adminBookTitle" class="form-input" placeholder="e.g. Data Structures & Algorithms" required>
+          </div>
+          <div class="form-group">
+            <label class="form-label">Author *</label>
+            <input type="text" id="adminBookAuthor" class="form-input" placeholder="Author name" required>
+          </div>
+        </div>
+        <div class="form-row-2" style="margin-bottom: 14px;">
+          <div class="form-group">
+            <label class="form-label">Department</label>
+            <select id="adminBookBranch" class="form-input">
+              <option value="CE">CE — Computer Engineering</option>
+              <option value="IT">IT — Information Technology</option>
+              <option value="EE">EE — Electrical Engineering</option>
+              <option value="ME">ME — Mechanical Engineering</option>
+              <option value="Civil">Civil Engineering</option>
+              <option value="IC">IC — Instrumentation</option>
+              <option value="All">All Departments</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label class="form-label">Semester</label>
+            <select id="adminBookSemester" class="form-input">
+              <option value="1">Semester 1</option><option value="2">Semester 2</option>
+              <option value="3">Semester 3</option><option value="4">Semester 4</option>
+              <option value="5" selected>Semester 5</option><option value="6">Semester 6</option>
+            </select>
+          </div>
+        </div>
+        <div class="form-row-2" style="margin-bottom: 14px;">
+          <div class="form-group">
+            <label class="form-label">GTU Subject Code</label>
+            <input type="text" id="adminBookGtuCode" class="form-input" placeholder="e.g. 3350701">
+          </div>
+          <div class="form-group">
+            <label class="form-label">Condition</label>
+            <select id="adminBookCondition" class="form-input">
+              <option value="Like New">Like New</option>
+              <option value="Good" selected>Good</option>
+              <option value="Fair">Fair</option>
+              <option value="Worn">Worn</option>
+            </select>
+          </div>
+        </div>
+        <div class="form-row-2" style="margin-bottom: 14px;">
+          <div class="form-group">
+            <label class="form-label">Mode</label>
+            <select id="adminBookMode" class="form-input">
+              <option value="sell">Sell</option>
+              <option value="exchange">Exchange</option>
+              <option value="donate">Donate (Free)</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label class="form-label">Price (₹) — 0 for Free</label>
+            <input type="number" id="adminBookPrice" class="form-input" placeholder="0" min="0" value="0">
+          </div>
+        </div>
+        <div class="form-group" style="margin-bottom: 20px;">
+          <label class="form-label">Description</label>
+          <textarea id="adminBookDesc" class="form-input" rows="3" placeholder="Brief description of the book..."></textarea>
+        </div>
+        <button type="submit" class="btn btn-primary btn-block">
+          <i class="fa-solid fa-plus"></i> Add to Catalog
+        </button>
+      </form>
+    </div>
+  </div>
+
+  <!-- PDF MODAL -->
+  <div class="pdf-modal-overlay" id="pdfModalOverlay">
+    <div class="pdf-modal-card">
+      <div class="pdf-modal-header">
+        <h3 id="pdfModalTitle">Document Viewer</h3>
+        <button id="closePdfModal" style="background:none;border:none;cursor:pointer;font-size:20px;"><i class="fa-solid fa-xmark"></i></button>
+      </div>
+      <iframe id="pdfIframe" class="pdf-iframe" title="PDF Viewer"></iframe>
+    </div>
+  </div>
+
+  <!-- BOOK DETAILS MODAL -->
+  <div class="modal-overlay" id="bookDetailsModal">
+    <div class="modal-card" style="max-width:560px;">
+      <div class="modal-header">
+        <h3 id="modalBookTitle">Book Details</h3>
+        <button class="modal-close" id="closeBookDetailsModal"><i class="fa-solid fa-xmark"></i></button>
+      </div>
+      <div id="modalBookBody"></div>
+      <div style="display:flex;gap:10px;flex-wrap:wrap;margin-top:20px;">
+        <a id="btnModalWhatsapp" target="_blank" class="btn btn-primary" style="flex:1;text-decoration:none;background:#25D366;border-color:#25D366;"><i class="fa-brands fa-whatsapp"></i> WhatsApp</a>
+        <button id="btnModalActionConfirm" class="btn btn-brown" style="flex:1;">Confirm</button>
+      </div>
+    </div>
+  </div>
+
   <script src="js/database.js"></script>
   <script src="js/api.js"></script>
   <script src="js/live-stats.js"></script>
   <script src="js/app.js"></script>
   <script>
-    // Proper logout handler
     document.getElementById('btnAdminLogout')?.addEventListener('click', async () => {
+      await window.BookAPI.logout();
+      window.location.href = 'login.html';
+    });
+    document.getElementById('adminSidebarLogout')?.addEventListener('click', async (e) => {
+      e.preventDefault();
       await window.BookAPI.logout();
       window.location.href = 'login.html';
     });
   </script>
 </body>
 </html>
+

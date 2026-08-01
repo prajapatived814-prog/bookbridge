@@ -248,8 +248,32 @@
       </div>
     </section>
 
+    <!-- ─── AI RECOMMENDATIONS (shown only to logged-in users) ─── -->
+    <section class="section" style="padding-top: 0; display: none;" id="aiRecommendationsSection">
+      <div class="container">
+        <div class="ai-rec-section animate-on-scroll">
+          <div class="ai-rec-header">
+            <span class="ai-rec-badge"><i class="fa-solid fa-wand-magic-sparkles"></i> AI Powered</span>
+            <div>
+              <div class="ai-rec-title">📖 Recommended For You</div>
+              <div class="ai-rec-subtitle" id="aiRecBranchInfo">Based on your profile</div>
+            </div>
+          </div>
+          <div class="grid-auto" id="aiRecommendationsGrid">
+            <!-- Populated by initHomePage() -->
+          </div>
+          <div style="text-align:center; margin-top:20px;">
+            <a href="browse.html" class="btn btn-ghost btn-sm" style="border:1px solid var(--color-primary); color:var(--color-primary);">
+              Browse More <i class="fa-solid fa-arrow-right"></i>
+            </a>
+          </div>
+        </div>
+      </div>
+    </section>
+
     <!-- ─── CATEGORIES ─── -->
     <section class="section" style="padding-top: 0;">
+
       <div class="section-header animate-on-scroll">
         <span class="section-tag">🏷️ Browse by Category</span>
         <h2>Explore By Department</h2>
