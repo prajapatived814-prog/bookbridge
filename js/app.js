@@ -632,31 +632,48 @@ function initLoginPage() {
   const form = document.getElementById('dedicatedLoginForm');
   form?.addEventListener('submit', async (e) => {
     e.preventDefault();
-    const email = document.getElementById('loginEmail').value.trim();
-    const password = document.getElementById('loginPassword').value.trim();
+    const email = document.getElementById('loginEmail')?.value.trim();
+    const password = document.getElementById('loginPassword')?.value;
     const submitBtn = document.getElementById('loginSubmitBtn');
 
     // Basic validation
     let valid = true;
-    if (!email) { document.getElementById('loginEmail').closest('.form-group').classList.add('error'); valid = false; }
-    if (!password) { document.getElementById('loginPassword').closest('.form-group').classList.add('error'); valid = false; }
+    if (!email) {
+      document.getElementById('loginEmail')?.closest('.input-group, .form-group')?.classList.add('error');
+      valid = false;
+    }
+    if (!password) {
+      document.getElementById('loginPassword')?.closest('.input-group, .form-group')?.classList.add('error');
+      valid = false;
+    }
     if (!valid) return;
 
-    submitBtn.classList.add('btn-loading');
-    const user = await window.BookAPI.login(email, password);
-    submitBtn.classList.remove('btn-loading');
+    if (submitBtn) submitBtn.classList.add('btn-loading');
 
-    if (user) {
-      showToast(`Welcome back, ${user.name}!`, 'success');
-      setTimeout(() => window.location.href = '/browse.html', 1000);
-    } else {
-      showToast('Login failed. Check your credentials.', 'danger');
+    try {
+      const user = await window.BookAPI.login(email, password);
+      if (submitBtn) submitBtn.classList.remove('btn-loading');
+
+      if (user) {
+        showToast(`Welcome back, ${user.name || 'Student'}!`, 'success');
+        // Redirect to browse page after successful login
+        const redirectUrl = new URLSearchParams(window.location.search).get('redirect') || 'browse.html';
+        setTimeout(() => window.location.href = redirectUrl, 800);
+      } else {
+        showToast('Invalid email or password. Please try again.', 'danger');
+      }
+    } catch (err) {
+      if (submitBtn) submitBtn.classList.remove('btn-loading');
+      // Show the server's error message (e.g. 'Invalid email or password.')
+      showToast(err.message || 'Login failed. Please check your credentials.', 'danger');
     }
   });
 
   // Clear error on focus
-  document.querySelectorAll('#dedicatedLoginForm .form-input').forEach(input => {
-    input.addEventListener('focus', () => input.closest('.form-group').classList.remove('error'));
+  document.querySelectorAll('#dedicatedLoginForm input').forEach(input => {
+    input.addEventListener('focus', () => {
+      input.closest('.input-group, .form-group')?.classList.remove('error');
+    });
   });
 }
 

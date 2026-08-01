@@ -1,27 +1,68 @@
 /**
  * ==========================================================================
- * MONGOOSE USER MODEL (GTU Attributes, Bcrypt Hashing, RBAC)
+ * SEQUELIZE USER MODEL (GTU Attributes, Bcrypt Hashing, RBAC)
  * ==========================================================================
  */
 
-let mongoose = null;
-try { mongoose = require('mongoose'); } catch (e) { mongoose = null; }
+const { DataTypes } = require('sequelize');
+const { sequelize } = require('../config/db');
 
-if (mongoose) {
-  const UserSchema = new mongoose.Schema({
-    name: { type: String, required: true, trim: true },
-    enrollment: { type: String, unique: true, sparse: true, index: true },
-    email: { type: String, required: true, unique: true, lowercase: true, trim: true, index: true },
-    passwordHash: { type: String, required: true },
-    branch: { type: String, default: 'CE', enum: ['CE', 'IT', 'ICT', 'EE', 'ME', 'CIVIL', 'PRINT', 'TMT', 'TPT'] },
-    semester: { type: Number, default: 5, min: 1, max: 6 },
-    division: { type: String, default: 'Div A' },
-    academicYear: { type: String, default: '2025-2026' },
-    whatsapp: { type: String, default: '' },
-    role: { type: String, enum: ['student', 'faculty', 'alumni', 'admin'], default: 'student' }
-  }, { timestamps: true });
+let User = null;
 
-  module.exports = mongoose.models.User || mongoose.model('User', UserSchema);
-} else {
-  module.exports = null;
+if (sequelize) {
+  User = sequelize.define('User', {
+    id: {
+      type: DataTypes.INTEGER,
+      autoIncrement: true,
+      primaryKey: true
+    },
+    name: {
+      type: DataTypes.STRING,
+      allowNull: false
+    },
+    email: {
+      type: DataTypes.STRING,
+      allowNull: false,
+      unique: true,
+      validate: { isEmail: true }
+    },
+    passwordHash: {
+      type: DataTypes.STRING,
+      allowNull: false
+    },
+    enrollment: {
+      type: DataTypes.STRING,
+      unique: true,
+      allowNull: true
+    },
+    branch: {
+      type: DataTypes.ENUM('CE', 'IT', 'ICT', 'EE', 'ME', 'CIVIL', 'PRINT', 'TMT', 'TPT'),
+      defaultValue: 'CE'
+    },
+    semester: {
+      type: DataTypes.INTEGER,
+      defaultValue: 5
+    },
+    division: {
+      type: DataTypes.STRING,
+      defaultValue: 'Div A'
+    },
+    academicYear: {
+      type: DataTypes.STRING,
+      defaultValue: '2025-2026'
+    },
+    whatsapp: {
+      type: DataTypes.STRING,
+      defaultValue: ''
+    },
+    role: {
+      type: DataTypes.ENUM('student', 'faculty', 'alumni', 'admin'),
+      defaultValue: 'student'
+    }
+  }, {
+    tableName: 'users',
+    timestamps: true
+  });
 }
+
+module.exports = User;

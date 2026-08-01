@@ -1,1 +1,0 @@
-# BookBridge Django Project Package

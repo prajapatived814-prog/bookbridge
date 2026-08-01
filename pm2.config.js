@@ -1,10 +1,11 @@
 module.exports = {
   apps: [
     {
-      name: 'bookbridge-backend',
-      script: './dist/server.js',
-      instances: 'max',
-      exec_mode: 'cluster',
+      name: 'bookbridge',
+      // FIX: was pointing to dist/server.js (TypeScript build) — now points to actual server
+      script: './server.js',
+      instances: 1,
+      exec_mode: 'fork',
       env: {
         NODE_ENV: 'production',
         PORT: 8000

@@ -1,43 +1,66 @@
 /**
  * ==========================================================================
- * ENTERPRISE DATABASE CONFIGURATION (MongoDB Mongoose + Pooling & Fallback)
+ * ENTERPRISE DATABASE CONFIGURATION (MySQL Sequelize + Pooling & Fallback)
  * ==========================================================================
  */
 
-let mongoose = null;
+let Sequelize = null;
 try {
-  mongoose = require('mongoose');
+  Sequelize = require('sequelize').Sequelize;
 } catch (e) {
-  mongoose = null;
+  Sequelize = null;
 }
 
-let isMongoConnected = false;
+let sequelizeInstance = null;
+let isSQLConnected = false;
+
+const host = process.env.MYSQL_HOST || '127.0.0.1';
+const port = parseInt(process.env.MYSQL_PORT || '3306', 10);
+const database = process.env.MYSQL_DATABASE || 'bookbridge';
+const username = process.env.MYSQL_USER || 'root';
+const password = process.env.MYSQL_PASSWORD || '';
+
+if (Sequelize) {
+  sequelizeInstance = new Sequelize(database, username, password, {
+    host,
+    port,
+    dialect: 'mysql',
+    logging: false,
+    pool: {
+      max: 50,
+      min: 0,
+      acquire: 30000,
+      idle: 10000
+    }
+  });
+}
 
 const connectDB = async () => {
-  if (!mongoose) {
-    console.log('[DB Info] Mongoose module not installed. Operating in high-performance JSON fallback mode.');
+  if (!sequelizeInstance) {
+    console.log('[DB Info] Sequelize / mysql2 module not installed. Operating in high-performance JSON fallback mode.');
     return false;
   }
 
-  const mongoURI = process.env.MONGO_URI || 'mongodb://127.0.0.1:27017/bookbridge';
-
   try {
-    const conn = await mongoose.connect(mongoURI, {
-      maxPoolSize: 100, // Handle high concurrency
-      serverSelectionTimeoutMS: 3000,
-      socketTimeoutMS: 45000,
-    });
-
-    isMongoConnected = true;
-    console.log(`[MongoDB Connected] Host: ${conn.connection.host}`);
+    await sequelizeInstance.authenticate();
+    // Sync models automatically with database
+    await sequelizeInstance.sync({ alter: false });
+    isSQLConnected = true;
+    console.log(`[MySQL Connected] Host: ${host}:${port} | Database: ${database}`);
     return true;
   } catch (error) {
-    console.log(`[DB Info] Local MongoDB offline (${error.message}). Gracefully using JSON DB fallback engine.`);
-    isMongoConnected = false;
+    console.log(`[DB Info] MySQL offline (${error.message}). Gracefully using JSON DB fallback engine.`);
+    isSQLConnected = false;
     return false;
   }
 };
 
-const getMongoStatus = () => isMongoConnected;
+const getSQLStatus = () => isSQLConnected;
+const getMongoStatus = () => isSQLConnected; // Backward compatibility alias
 
-module.exports = { connectDB, getMongoStatus };
+module.exports = {
+  connectDB,
+  getSQLStatus,
+  getMongoStatus,
+  sequelize: sequelizeInstance
+};

@@ -1,43 +1,113 @@
 /**
  * ==========================================================================
- * MONGOOSE BOOK / RESOURCE MODEL (Compound Index & Category Attributes)
+ * SEQUELIZE BOOK / RESOURCE MODEL (Relational Schema & Seller Metadata)
  * ==========================================================================
  */
 
-let mongoose = null;
-try { mongoose = require('mongoose'); } catch (e) { mongoose = null; }
+const { DataTypes } = require('sequelize');
+const { sequelize } = require('../config/db');
 
-if (mongoose) {
-  const BookSchema = new mongoose.Schema({
-    title: { type: String, required: true, index: true },
-    author: { type: String, required: true },
-    gtuCode: { type: String, index: true, default: '' },
-    category: { type: String, enum: ['physical', 'digital'], default: 'physical' },
-    resourceType: { type: String, default: 'textbook' },
-    genre: { type: String, default: 'Computer Engineering' },
-    subject: { type: String, default: 'General' },
-    semester: { type: Number, required: true, index: true },
-    branch: { type: String, required: true, index: true },
-    edition: { type: String, default: 'GTU Edition' },
-    condition: { type: String, enum: ['Brand New', 'Like New', 'Excellent', 'Good', 'Fair'], default: 'Good' },
-    mode: { type: String, enum: ['exchange', 'sell', 'buy', 'donate'], required: true },
-    price: { type: Number, default: 0 },
-    exchangeFor: { type: String, default: '' },
-    description: { type: String, default: '' },
-    pdfUrl: { type: String, default: '' },
-    status: { type: String, enum: ['Available', 'Reserved', 'Sold'], default: 'Available', index: true },
-    seller: {
-      id: String,
-      name: String,
-      email: String,
-      role: String,
-      whatsapp: String
+let Book = null;
+
+if (sequelize) {
+  Book = sequelize.define('Book', {
+    id: {
+      type: DataTypes.INTEGER,
+      autoIncrement: true,
+      primaryKey: true
+    },
+    title: {
+      type: DataTypes.STRING,
+      allowNull: false
+    },
+    author: {
+      type: DataTypes.STRING,
+      allowNull: false
+    },
+    gtuCode: {
+      type: DataTypes.STRING,
+      defaultValue: ''
+    },
+    category: {
+      type: DataTypes.ENUM('physical', 'digital'),
+      defaultValue: 'physical'
+    },
+    resourceType: {
+      type: DataTypes.STRING,
+      defaultValue: 'textbook'
+    },
+    genre: {
+      type: DataTypes.STRING,
+      defaultValue: 'Computer Engineering'
+    },
+    subject: {
+      type: DataTypes.STRING,
+      defaultValue: 'General'
+    },
+    semester: {
+      type: DataTypes.INTEGER,
+      allowNull: false
+    },
+    branch: {
+      type: DataTypes.STRING,
+      allowNull: false
+    },
+    edition: {
+      type: DataTypes.STRING,
+      defaultValue: 'GTU Edition'
+    },
+    condition: {
+      type: DataTypes.ENUM('Brand New', 'Like New', 'Excellent', 'Good', 'Fair'),
+      defaultValue: 'Good'
+    },
+    mode: {
+      type: DataTypes.ENUM('exchange', 'sell', 'buy', 'donate'),
+      allowNull: false
+    },
+    price: {
+      type: DataTypes.FLOAT,
+      defaultValue: 0
+    },
+    exchangeFor: {
+      type: DataTypes.TEXT,
+      defaultValue: ''
+    },
+    description: {
+      type: DataTypes.TEXT,
+      defaultValue: ''
+    },
+    pdfUrl: {
+      type: DataTypes.STRING(500),
+      defaultValue: ''
+    },
+    status: {
+      type: DataTypes.ENUM('Available', 'Reserved', 'Sold'),
+      defaultValue: 'Available'
+    },
+    sellerId: {
+      type: DataTypes.INTEGER,
+      allowNull: true
+    },
+    sellerName: {
+      type: DataTypes.STRING,
+      allowNull: true
+    },
+    sellerEmail: {
+      type: DataTypes.STRING,
+      allowNull: true
+    },
+    sellerRole: {
+      type: DataTypes.STRING,
+      allowNull: true
+    },
+    sellerWhatsapp: {
+      type: DataTypes.STRING,
+      allowNull: true
     }
-  }, { timestamps: true });
-
-  BookSchema.index({ title: 'text', author: 'text', subject: 'text', gtuCode: 'text' });
-
-  module.exports = mongoose.models.Book || mongoose.model('Book', BookSchema);
-} else {
-  module.exports = null;
+  }, {
+    tableName: 'books',
+    timestamps: true
+  });
 }
+
+module.exports = Book;

@@ -16,7 +16,7 @@
 
     <!-- Font Awesome -->
     <link rel="stylesheet"
-        href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.7.2/css/all.min.css">
+        href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
 
     <!-- CSS -->
      <link rel="stylesheet" href="login.css">
@@ -144,7 +144,7 @@
                     <!-- Login Form Starts Here -->
 
 
-                                        <form id="loginForm">
+                                        <form id="dedicatedLoginForm">
 
                         <!-- Email -->
 
@@ -160,9 +160,13 @@
 
                                 <input
                                     type="email"
-                                    id="email"
+                                    id="loginEmail"
+                                    name="email"
                                     placeholder="Enter your email"
-                                    required>
+                                    required
+                                    autocomplete="email">
+
+                            </div>
 
                             </div>
 
@@ -184,9 +188,11 @@
 
                                 <input
                                     type="password"
-                                    id="password"
+                                    id="loginPassword"
+                                    name="password"
                                     placeholder="Enter your password"
-                                    required>
+                                    required
+                                    autocomplete="current-password">
 
                                 <span id="togglePassword">
 
@@ -212,7 +218,7 @@
 
                             </label>
 
-                            <a href="#">
+                            <a href="forgot-password.html">
 
                                 Forgot Password?
 
@@ -226,6 +232,7 @@
 
                         <button
                             type="submit"
+                            id="loginSubmitBtn"
                             class="login-btn">
 
                             Login
@@ -395,9 +402,35 @@
 
 
     <!-- JavaScript -->
-
+    <div class="toast-container" id="toastContainer"></div>
+    <script src="js/database.js"></script>
+    <script src="js/api.js"></script>
     <script src="js/live-stats.js"></script>
-    <script src="login.js"></script>
+    <script src="js/app.js"></script>
+    <script>
+      // Password toggle for the old-style login form
+      const _toggleBtn = document.getElementById('togglePassword');
+      const _pwdInput = document.getElementById('loginPassword');
+      if (_toggleBtn && _pwdInput) {
+        _toggleBtn.addEventListener('click', () => {
+          const icon = _toggleBtn.querySelector('i');
+          if (_pwdInput.type === 'password') {
+            _pwdInput.type = 'text';
+            icon.classList.replace('fa-eye', 'fa-eye-slash');
+          } else {
+            _pwdInput.type = 'password';
+            icon.classList.replace('fa-eye-slash', 'fa-eye');
+          }
+        });
+      }
+      // Remember Me — FIX: Actually persist token across sessions
+      const _rememberCheck = document.querySelector('input[name="remember"]');
+      if (_rememberCheck) {
+        _rememberCheck.addEventListener('change', () => {
+          window._rememberMe = _rememberCheck.checked;
+        });
+      }
+    </script>
 
 </body>
 

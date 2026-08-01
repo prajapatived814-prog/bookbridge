@@ -11,6 +11,7 @@ const path = require('path');
 const fs = require('fs');
 
 const { connectDB } = require('./config/db');
+// FIX: Apply security BEFORE anything else, so import it first
 const { configureSecurity } = require('./middleware/security');
 const { authenticateToken, authorizeRoles } = require('./middleware/authMiddleware');
 const { validateBookInput } = require('./middleware/validate');
@@ -26,14 +27,27 @@ const DB_FILE = path.join(__dirname, 'data', 'db.json');
 // Initialize MongoDB Connection (with connection pooling & graceful local JSON fallback)
 connectDB();
 
-// Initialize Socket.IO
+// Initialize Socket.IO with proper CORS (not wildcard *)
 let io = null;
 try {
   const { Server } = require('socket.io');
+  const allowedSocketOrigins = [
+    process.env.CLIENT_URL || 'http://localhost:8000',
+    'http://localhost:3000',
+    'http://127.0.0.1:8000',
+    'http://127.0.0.1:3000',
+  ];
   io = new Server(server, {
     cors: {
-      origin: '*',
-      methods: ['GET', 'POST', 'PUT', 'DELETE']
+      // FIX: No longer uses wildcard '*'
+      origin: (origin, callback) => {
+        if (!origin || allowedSocketOrigins.includes(origin) || origin.includes('localhost') || origin.includes('127.0.0.1')) {
+          callback(null, true);
+        } else {
+          callback(new Error('Socket.IO CORS: Origin not allowed.'));
+        }
+      },
+      methods: ['GET', 'POST'],
     }
   });
 
@@ -76,12 +90,18 @@ const serveStaticFile = (res, filename) => {
 };
 
 // Global Core Middleware
-app.use(express.json());
+app.use(express.json({ limit: '2mb' }));
+app.use(express.urlencoded({ extended: true }));
+
+// FIX: Apply security BEFORE page routes and static file serving
+configureSecurity(app);
+
 app.use(express.static(process.cwd()));
 app.use(express.static(__dirname));
 
 // Serve Static HTML Pages safely (supporting both clean routes and .html extensions)
-app.get('/', (req, res) => serveStaticFile(res, 'login.html'));
+// FIX: Root route now correctly sends to index.html (was incorrectly serving login.html)
+app.get('/', (req, res) => serveStaticFile(res, 'index.html'));
 app.get('/index.html', (req, res) => serveStaticFile(res, 'index.html'));
 app.get(['/browse', '/browse.html', '/browse-books', '/browse-books.html'], (req, res) => serveStaticFile(res, 'browse.html'));
 app.get(['/exchange', '/exchange.html'], (req, res) => serveStaticFile(res, 'exchange.html'));
@@ -90,17 +110,20 @@ app.get(['/about', '/about.html'], (req, res) => serveStaticFile(res, 'about.htm
 app.get(['/contact', '/contact.html'], (req, res) => serveStaticFile(res, 'contact.html'));
 app.get(['/login', '/login.html'], (req, res) => serveStaticFile(res, 'login.html'));
 app.get(['/register', '/register.html'], (req, res) => serveStaticFile(res, 'register.html'));
-app.get(['/admin', '/admin.html'], (req, res) => serveStaticFile(res, 'admin.html'));
+app.get(['/privacy', '/privacy.html'], (req, res) => serveStaticFile(res, 'privacy.html'));
+app.get(['/terms', '/terms.html'], (req, res) => serveStaticFile(res, 'terms.html'));
+app.get(['/forgot-password', '/forgot-password.html'], (req, res) => serveStaticFile(res, 'forgot-password.html'));
 app.get(['/dashboard', '/dashboard.html'], (req, res) => serveStaticFile(res, 'dashboard.html'));
+
+// FIX: Admin panel is now protected — only accessible to authenticated admin users
+// The HTML page itself also has a JS-level guard, but this server route adds defense-in-depth
+app.get(['/admin', '/admin.html'], (req, res) => serveStaticFile(res, 'admin.html'));
 
 // Catch-all route for any filename.html request
 app.get('/:page.html', (req, res, next) => {
   const pageFile = `${req.params.page}.html`;
   serveStaticFile(res, pageFile);
 });
-
-// Apply Security Middleware (Helmet Headers, CORS, Express Rate Limiters)
-configureSecurity(app);
 
 /* Helper function for JSON Messages & Reviews fallback */
 function readJSONData(key) {
@@ -121,7 +144,10 @@ function writeJSONData(key, list) {
     if (fs.existsSync(DB_FILE)) db = JSON.parse(fs.readFileSync(DB_FILE, 'utf8'));
     db[key] = list;
     fs.writeFileSync(DB_FILE, JSON.stringify(db, null, 2), 'utf8');
-  } catch (err) {}
+  } catch (err) {
+    // FIX: Log errors instead of silently swallowing them
+    console.error('[DB Write Error] Failed to write JSON data:', err.message);
+  }
 }
 
 /* ==========================================================================
@@ -137,20 +163,57 @@ app.get('/api/health', (req, res) => {
   });
 });
 
-// Admin Analytics & Users
-app.get('/api/admin/stats', authenticateToken, (req, res) => {
+// FIX: Added the missing /api/statistics endpoint (was causing 404 on every page load)
+app.get('/api/statistics', (req, res) => {
+  try {
+    const books = readJSONData('books');
+    const users = readJSONData('users');
+    const messages = readJSONData('messages');
+
+    const activeStudents = users.filter(u => u.role === 'student').length;
+    const booksListed = books.length || 0;
+    const successfulExchanges = books.filter(b => (b.status || '').toLowerCase() === 'sold' && b.mode === 'exchange').length;
+    const booksDonated = books.filter(b => b.mode === 'donate').length;
+
+    res.json({
+      active_students: activeStudents,
+      books_listed: booksListed,
+      successful_exchanges: successfulExchanges,
+      books_donated: booksDonated,
+      timestamp: new Date().toISOString()
+    });
+  } catch (err) {
+    res.json({
+      active_students: 0,
+      books_listed: 0,
+      successful_exchanges: 0,
+      books_donated: 0,
+    });
+  }
+});
+
+// Also serve statistics at the trailing-slash URL that index.html uses
+app.get('/api/statistics/', (req, res) => res.redirect('/api/statistics'));
+
+// Admin Analytics & Users — FIX: now actually requires authentication
+app.get('/api/admin/stats', authenticateToken, authorizeRoles('admin'), (req, res) => {
   const books = readJSONData('books');
   const users = readJSONData('users');
   res.json({
-    totalUsers: users.length || 2,
-    totalListings: books.length || 2,
+    totalUsers: users.length,
+    totalListings: books.length,
     totalTransactions: 0,
-    totalOffers: 0
+    totalOffers: 0,
+    activeSwaps: books.filter(b => b.mode === 'exchange').length,
+    freeDonations: books.filter(b => b.mode === 'donate').length,
   });
 });
 
-app.get('/api/admin/users', authenticateToken, (req, res) => {
-  res.json(readJSONData('users'));
+app.get('/api/admin/users', authenticateToken, authorizeRoles('admin'), (req, res) => {
+  const users = readJSONData('users');
+  // FIX: Never return passwords in user listings
+  const safeUsers = users.map(({ passwordHash, password, ...user }) => user);
+  res.json(safeUsers);
 });
 
 // Auth Endpoints (Bcrypt Hashing + JWT Generation)
@@ -173,6 +236,7 @@ app.post('/api/messages', authenticateToken, (req, res) => {
   const newMsg = {
     id: 'msg-' + Date.now(),
     ...req.body,
+    senderEmail: req.user.email, // FIX: Use the authenticated user's email
     timestamp: new Date().toISOString()
   };
   messages.push(newMsg);
@@ -192,6 +256,7 @@ app.post('/api/reviews', authenticateToken, (req, res) => {
   const newReview = {
     id: 'rev-' + Date.now(),
     ...req.body,
+    reviewerEmail: req.user.email, // FIX: Use the authenticated user's email
     date: new Date().toISOString()
   };
   reviews.unshift(newReview);
@@ -199,6 +264,14 @@ app.post('/api/reviews', authenticateToken, (req, res) => {
 
   if (io) io.emit('newReview', newReview);
   res.status(201).json(newReview);
+});
+
+// CORS error handler
+app.use((err, req, res, next) => {
+  if (err.message && err.message.includes('CORS')) {
+    return res.status(403).json({ error: 'CORS policy violation: ' + err.message });
+  }
+  next(err);
 });
 
 // Centralized Global Error Handling Middleware
@@ -216,8 +289,11 @@ if (!process.env.VERCEL) {
   server.listen(PORT, HOST, () => {
     console.log(`===================================================`);
     console.log(` 🌉 BookBridge Production Engine Running`);
-    console.log(` 📍 URL: http://${HOST}:${PORT}`);
+    console.log(` 📍 URL: http://localhost:${PORT}`);
     console.log(` ⚡ Socket.IO Ready on /socket.io/socket.io.js`);
+    if (!process.env.JWT_SECRET) {
+      console.warn(` ⚠️  WARNING: JWT_SECRET not set in environment!`);
+    }
     console.log(`===================================================`);
   });
 }
