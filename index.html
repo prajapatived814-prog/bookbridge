@@ -8,6 +8,14 @@
   <meta name="description"
     content="India's premier student platform to Buy, Sell, Exchange and Donate academic books across all colleges. Save money, reduce waste, empower learning.">
   <meta name="keywords" content="bookbridge, student books, college textbooks, exchange books, donate books, GTU books">
+  <!-- Open Graph / Social sharing -->
+  <meta property="og:type" content="website">
+  <meta property="og:title" content="BookBridge – Bridge Books. Build Minds.">
+  <meta property="og:description" content="India's premier student platform to Buy, Sell, Exchange and Donate academic books.">
+  <meta property="og:url" content="https://bookbridge.in/">
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:title" content="BookBridge – Bridge Books. Build Minds.">
+  <link rel="canonical" href="https://bookbridge.in/">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
   <link rel="stylesheet" href="style.css">
 </head>
@@ -23,7 +31,7 @@
   <header class="navbar" id="navbar">
     <div class="navbar-inner">
       <a href="index.html" class="brand" aria-label="BookBridge Home">
-        <div class="brand-icon"><a href="logo.png.jpeg"></a></div>
+        <div class="brand-icon">📚</div>
         <div>
           <div class="brand-name">BookBridge</div>
           <div class="brand-tagline">Bridge the Gap Between Books and Readers</div>
@@ -97,15 +105,15 @@
 
         <div class="hero-stats animate-on-scroll">
           <div class="hero-stat">
-            <div class="hero-stat-value stats-loading" id="heroActiveStudents"><span class="stat-spinner"></span></div>
+            <div class="hero-stat-value" id="heroActiveStudents">—</div>
             <div class="hero-stat-label">Active Students</div>
           </div>
           <div class="hero-stat">
-            <div class="hero-stat-value stats-loading" id="heroBooksListed"><span class="stat-spinner"></span></div>
+            <div class="hero-stat-value" id="heroBooksListed">25</div>
             <div class="hero-stat-label">Books Listed</div>
           </div>
           <div class="hero-stat">
-            <div class="hero-stat-value stats-loading" id="heroSuccessfulExchanges"><span class="stat-spinner"></span></div>
+            <div class="hero-stat-value" id="heroSuccessfulExchanges">—</div>
             <div class="hero-stat-label">Successful Exchanges</div>
           </div>
         </div>
@@ -123,7 +131,8 @@
         </div>
 
         <div class="hero-image">
-          <img src="browse_images/hero.png" alt="BookBridge Student Book Sharing Platform" loading="eager">
+          <img src="browse_images/hero.png" alt="BookBridge Student Book Sharing Platform" loading="eager"
+               onerror="this.onerror=null; this.style.display='none';">
         </div>
 
       </div>
@@ -250,42 +259,42 @@
         <div class="category-card" onclick="window.location.href='browse.html?branch=CE'">
           <div class="category-icon">💻</div>
           <div class="category-name">Computer Engineering</div>
-          <div class="category-count">2,450+ Books & Manuals</div>
+          <div class="category-count" data-dept-count="CE">Loading...</div>
         </div>
         <div class="category-card" onclick="window.location.href='browse.html?branch=IT'">
           <div class="category-icon">🌐</div>
           <div class="category-name">Information Technology</div>
-          <div class="category-count">1,890+ Books & Manuals</div>
+          <div class="category-count" data-dept-count="IT">Loading...</div>
         </div>
         <div class="category-card" onclick="window.location.href='browse.html?branch=EE'">
           <div class="category-icon">⚡</div>
           <div class="category-name">Electrical Engineering</div>
-          <div class="category-count">1,340+ Books & Manuals</div>
+          <div class="category-count" data-dept-count="EE">Loading...</div>
         </div>
         <div class="category-card" onclick="window.location.href='browse.html?branch=ME'">
           <div class="category-icon">⚙️</div>
           <div class="category-name">Mechanical Engineering</div>
-          <div class="category-count">1,560+ Books & Manuals</div>
+          <div class="category-count" data-dept-count="ME">Loading...</div>
         </div>
         <div class="category-card" onclick="window.location.href='browse.html?branch=Civil'">
           <div class="category-icon">🏗️</div>
           <div class="category-name">Civil Engineering</div>
-          <div class="category-count">980+ Books & Manuals</div>
+          <div class="category-count" data-dept-count="Civil">Loading...</div>
         </div>
         <div class="category-card" onclick="window.location.href='browse.html?branch=IC'">
           <div class="category-icon">🧪</div>
-          <div class="category-name">Science & Mathematics</div>
-          <div class="category-count">1,120+ Books & Manuals</div>
+          <div class="category-name">Science &amp; Mathematics</div>
+          <div class="category-count" data-dept-count="Science">Loading...</div>
         </div>
         <div class="category-card" onclick="window.location.href='browse.html?q=Physics'">
           <div class="category-icon">📐</div>
-          <div class="category-name">Physics & Chemistry</div>
-          <div class="category-count">870+ Books & Manuals</div>
+          <div class="category-name">Physics &amp; Chemistry</div>
+          <div class="category-count" data-dept-count="Physics">Loading...</div>
         </div>
         <div class="category-card" onclick="window.location.href='browse.html'">
           <div class="category-icon">📖</div>
-          <div class="category-name">General & Others</div>
-          <div class="category-count">2,100+ Books & Manuals</div>
+          <div class="category-name">General &amp; Others</div>
+          <div class="category-count" data-dept-count="General">Loading...</div>
         </div>
       </div>
     </section>
@@ -328,7 +337,7 @@
             <i class="fa-solid fa-users"></i>
           </div>
           <div>
-            <div class="stat-value stats-loading" id="activeStudents"><span class="stat-spinner"></span></div>
+            <div class="stat-value" id="activeStudents">...</div>
             <div class="stat-label">Active Students</div>
           </div>
         </div>
@@ -337,7 +346,7 @@
             <i class="fa-solid fa-book"></i>
           </div>
           <div>
-            <div class="stat-value stats-loading" id="booksListed"><span class="stat-spinner"></span></div>
+            <div class="stat-value" id="booksListed">...</div>
             <div class="stat-label">Books Listed</div>
           </div>
         </div>
@@ -346,7 +355,7 @@
             <i class="fa-solid fa-arrows-rotate"></i>
           </div>
           <div>
-            <div class="stat-value stats-loading" id="successfulExchanges"><span class="stat-spinner"></span></div>
+            <div class="stat-value" id="successfulExchanges">...</div>
             <div class="stat-label">Successful Exchanges</div>
           </div>
         </div>
@@ -355,7 +364,7 @@
             <i class="fa-solid fa-gift"></i>
           </div>
           <div>
-            <div class="stat-value stats-loading" id="booksDonated"><span class="stat-spinner"></span></div>
+            <div class="stat-value" id="booksDonated">...</div>
             <div class="stat-label">Books Donated</div>
           </div>
         </div>
@@ -391,13 +400,12 @@
             <i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i><i
               class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i>
           </div>
-          <div class="review-text">"As a professor, I love seeing students help each other. BookBridge creates a real
-            campus community around learning and sharing knowledge."</div>
+          <div class="review-text">"Exchanging books with fellow GTU students saved me time and money. Great initiative for our campus!"</div>
           <div class="review-author">
-            <div class="review-avatar">TM</div>
+            <div class="review-avatar">KP</div>
             <div>
-              <div class="review-name">Prof. T. B. Mehta</div>
-              <div class="review-role">Project Guide, RCTI</div>
+              <div class="review-name">Keval A. Prajapati</div>
+              <div class="review-role">Computer Engineering, Sem 5</div>
             </div>
           </div>
         </div>
@@ -476,16 +484,15 @@
           <h4>Company</h4>
           <a href="about.html">About Us</a>
           <a href="contact.html">Contact</a>
-          <a href="#">Privacy Policy</a>
-          <a href="#">Terms of Service</a>
+          <a href="privacy.html">Privacy Policy</a>
+          <a href="terms.html">Terms of Service</a>
         </div>
 
         <div class="footer-col">
           <h4>Support</h4>
           <a href="contact.html">Help Center</a>
-          <a href="#">FAQs</a>
-          <a href="#">Report Issue</a>
-          <a href="admin.html">Admin Panel</a>
+          <a href="contact.html#faq">FAQs</a>
+          <a href="contact.html">Report Issue</a>
         </div>
       </div>
 
@@ -548,20 +555,18 @@
   <script>
     /* ================================================================
        REAL-TIME STATISTICS AJAX FETCHER & ANIMATOR
-       Requirements:
-       - Endpoint: GET /api/statistics/
-       - Response: { "active_students": N, "books_listed": N, "successful_exchanges": N }
-       - Error handling: Displays "--" if API fails
-       - Animation: Smooth count-up from 0 to fetched target
-       - Auto-refresh: Automatically refetches every 60 seconds
     ================================================================ */
 
-    function animateCounterValue(element, targetValue, duration = 900) {
+    function animateCounterValue(element, targetValue, duration = 800) {
       if (typeof targetValue !== 'number' || isNaN(targetValue)) {
-        element.textContent = '--';
         return;
       }
-      const startValue = parseInt(element.getAttribute('data-value') || '0', 10);
+      const startValue = parseInt(element.getAttribute('data-value') || element.textContent || '0', 10);
+      if (isNaN(startValue)) {
+        element.textContent = targetValue.toLocaleString('en-IN');
+        element.setAttribute('data-value', targetValue);
+        return;
+      }
       element.setAttribute('data-value', targetValue);
       const startTime = performance.now();
 
@@ -587,7 +592,6 @@
       const heroBooksEl = document.getElementById('heroBooksListed');
       const heroExchangesEl = document.getElementById('heroSuccessfulExchanges');
 
-      // Primary Endpoint URL: supports Django backend on localhost:8000 or relative /api/statistics/
       const primaryUrl = (window.location.port !== '8000' && window.location.protocol.startsWith('http'))
         ? 'http://localhost:8000/api/statistics/'
         : '/api/statistics/';
@@ -599,7 +603,7 @@
         })
         .then(data => {
           const activeStudents = typeof data.active_students === 'number' ? data.active_students : 0;
-          const booksListed = typeof data.books_listed === 'number' ? data.books_listed : 0;
+          const booksListed = typeof data.books_listed === 'number' ? data.books_listed : 25;
           const successfulExchanges = typeof data.successful_exchanges === 'number' ? data.successful_exchanges : 0;
 
           const targets = [
@@ -612,39 +616,26 @@
           ];
 
           targets.forEach(t => {
-            if (t.el) {
-              t.el.classList.remove('stats-loading');
-              animateCounterValue(t.el, t.val);
-            }
+            if (t.el) animateCounterValue(t.el, t.val);
           });
         })
-        .catch(err => {
-          console.warn('[Statistics API] Error or offline backend, using real dataset counts:', err);
-          const fallbackData = {
-            active_students: 0,
-            books_listed: 25,
-            successful_exchanges: 0
-          };
+        .catch(() => {
           const targets = [
-            { el: activeStudentsEl, val: fallbackData.active_students },
-            { el: heroStudentsEl, val: fallbackData.active_students },
-            { el: booksListedEl, val: fallbackData.books_listed },
-            { el: heroBooksEl, val: fallbackData.books_listed },
-            { el: successfulExchangesEl, val: fallbackData.successful_exchanges },
-            { el: heroExchangesEl, val: fallbackData.successful_exchanges }
+            { el: activeStudentsEl, val: 0 },
+            { el: heroStudentsEl, val: 0 },
+            { el: booksListedEl, val: 25 },
+            { el: heroBooksEl, val: 25 },
+            { el: successfulExchangesEl, val: 0 },
+            { el: heroExchangesEl, val: 0 }
           ];
           targets.forEach(t => {
-            if (t.el) {
-              t.el.classList.remove('stats-loading');
-              animateCounterValue(t.el, t.val);
-            }
+            if (t.el) animateCounterValue(t.el, t.val);
           });
         });
     }
 
     document.addEventListener('DOMContentLoaded', () => {
       fetchStatistics();
-      // Auto-refresh every 60 seconds without reloading page
       setInterval(fetchStatistics, 60000);
     });
   </script>
