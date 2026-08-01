@@ -104,6 +104,11 @@ async function updateLiveStatsUI() {
     if (heroBooksEl) animateValue(heroBooksEl, 0, stats.books);
     if (heroExchangesEl) animateValue(heroExchangesEl, 0, stats.exchanges);
 
+    // Also update data-count attribute for counter animation system
+    if (heroStudentsEl) heroStudentsEl.setAttribute('data-count', stats.students);
+    if (heroBooksEl) heroBooksEl.setAttribute('data-count', stats.books);
+    if (heroExchangesEl) heroExchangesEl.setAttribute('data-count', stats.exchanges);
+
     // ── INDEX.HTML: Main stats section ──
     const activeStudentsEl = document.getElementById('activeStudents');
     const booksListedEl = document.getElementById('booksListed');
@@ -243,6 +248,6 @@ window.getLiveStats = getLiveStats;
 document.addEventListener("DOMContentLoaded", () => {
     updateLiveStatsUI();
 
-    // Auto-refresh every 30 seconds for real-time feel
-    setInterval(updateLiveStatsUI, 30000);
+    // Auto-refresh every 15 seconds for real-time feel
+    setInterval(updateLiveStatsUI, 15000);
 });
