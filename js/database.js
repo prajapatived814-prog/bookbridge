@@ -235,7 +235,7 @@ const SEED_BOOKS = [
     rating: 4.9,
     description: 'Hands-on introduction to Python programming. Covers fundamentals, data visualization, web apps, and game development.',
     cover: 'https://images.unsplash.com/photo-1526379095098-d400fd0bf935?auto=format&fit=crop&w=400&q=80',
-    seller: { id: 'usr-ved', name: 'Ved V. Patel', rating: 4.8, email: 'ved.ce@rcti.ac.in', whatsapp: '+919876543210', role: 'student' },
+    seller: { id: 'usr-ved', name: 'Ved V. Patel', rating: 4.8, email: 'ved.ce@rcti.ac.in', whatsapp: '+919876543210', role: 'student', isVerified: true },
     location: 'RCTI IT Block',
     status: 'Available',
     createdAt: '2026-07-22T09:00:00Z'
@@ -280,10 +280,8 @@ class OfficialRCTIDatabase {
     if (users.find(u => u.email.toLowerCase() === userData.email.toLowerCase())) {
       throw new Error('Account already registered for this email.');
     }
-    // FIX: Never auto-grant admin based on email string — always default to 'student'
     const role = 'student';
 
-    // FIX: Hash the password using a simple but consistent method
     let passwordHash = '';
     if (userData.password) {
       const encoder = new TextEncoder();
@@ -294,7 +292,6 @@ class OfficialRCTIDatabase {
           const hashArray = Array.from(new Uint8Array(hashBuffer));
           passwordHash = 'sha256:' + hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
         } catch(e) {
-          // Crypto API not available — store placeholder (fallback only)
           passwordHash = 'plain:' + userData.password;
         }
       } else {
@@ -307,7 +304,7 @@ class OfficialRCTIDatabase {
       name: userData.name,
       enrollment: userData.enrollment || '',
       email: userData.email,
-      passwordHash: passwordHash, // FIX: Store hash, not plaintext
+      passwordHash: passwordHash,
       branch: userData.branch || 'CE',
       semester: parseInt(userData.semester || 1),
       division: userData.division || 'Div A',
@@ -315,6 +312,7 @@ class OfficialRCTIDatabase {
       whatsapp: userData.whatsapp || '',
       college: 'R. C. Technical Institute, Ahmedabad (GTU)',
       role: role,
+      isVerified: true,
       createdAt: new Date().toISOString()
     };
     users.push(newUser);
@@ -322,6 +320,25 @@ class OfficialRCTIDatabase {
     const { passwordHash: _h, ...safeUser } = newUser;
     localStorage.setItem(STORAGE_KEY_CURRENT_USER, JSON.stringify(safeUser));
     return safeUser;
+  }
+
+  async verifyUser(userId) {
+    await this.init();
+    let users = JSON.parse(localStorage.getItem(STORAGE_KEY_USERS) || '[]');
+    users = users.map(u => u.id === userId ? { ...u, isVerified: true } : u);
+    localStorage.setItem(STORAGE_KEY_USERS, JSON.stringify(users));
+  }
+
+  async getExchangeMatches(bookId) {
+    await this.init();
+    const books = JSON.parse(localStorage.getItem(STORAGE_KEY_BOOKS) || '[]');
+    const targetBook = books.find(b => b.id === bookId);
+    if (!targetBook || !targetBook.exchangeFor) return [];
+    
+    return books.filter(b => 
+      b.mode === 'exchange' && 
+      targetBook.exchangeFor.toLowerCase().includes(b.title.toLowerCase())
+    );
   }
 
   async loginUser(email, password) {

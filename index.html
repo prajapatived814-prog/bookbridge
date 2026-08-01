@@ -17,6 +17,8 @@
   <meta name="twitter:card" content="summary_large_image">
   <meta name="twitter:title" content="BookBridge – Bridge Books. Build Minds.">
   <link rel="canonical" href="https://bookbridge.in/">
+  <link rel="manifest" href="manifest.json">
+  <meta name="theme-color" content="#3E6B3A">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
   <link rel="stylesheet" href="style.css">
 </head>
@@ -40,17 +42,20 @@
       </a>
 
       <nav class="nav-links" aria-label="Main Navigation">
-        <a href="index.html" class="nav-link active">Home</a>
-        <a href="browse.html" class="nav-link">Browse</a>
-        <a href="exchange.html" class="nav-link">Exchange</a>
-        <a href="donate.html" class="nav-link">Donate</a>
-        <a href="about.html" class="nav-link">About</a>
-        <a href="contact.html" class="nav-link">Contact</a>
+        <a href="index.html" class="nav-link active" data-i18n="home">Home</a>
+        <a href="browse.html" class="nav-link" data-i18n="browse">Browse</a>
+        <a href="exchange.html" class="nav-link" data-i18n="exchange">Exchange</a>
+        <a href="donate.html" class="nav-link" data-i18n="donate">Donate</a>
+        <a href="about.html" class="nav-link" data-i18n="about">About</a>
+        <a href="contact.html" class="nav-link" data-i18n="contact">Contact</a>
       </nav>
 
       <div class="nav-actions">
-        <a href="login.html" class="btn btn-ghost" id="navLoginBtn">Login</a>
-        <a href="register.html" class="btn btn-primary" id="navRegisterBtn">Get Started</a>
+        <div class="lang-selector">
+          <button class="lang-select-btn" title="Change Language"><i class="fa-solid fa-globe"></i> <span>EN</span></button>
+        </div>
+        <a href="login.html" class="btn btn-ghost" id="navLoginBtn" data-i18n="login">Login</a>
+        <a href="register.html" class="btn btn-primary" id="navRegisterBtn" data-i18n="register">Get Started</a>
       </div>
 
       <button class="mobile-toggle" id="mobileMenuToggle" aria-label="Toggle Navigation Menu" aria-expanded="false">

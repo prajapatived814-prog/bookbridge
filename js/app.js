@@ -9,6 +9,8 @@
 document.addEventListener('DOMContentLoaded', async () => {
   initGlobalComponents();
   await updateNavUserUI();
+  initLanguageSwitcher();
+  registerPWA();
 
   const path = window.location.pathname;
   if (path.includes('admin')) initAdminPage();
@@ -21,6 +23,60 @@ document.addEventListener('DOMContentLoaded', async () => {
   else if (path.includes('dashboard')) initDashboardPage();
   else initHomePage();
 });
+
+/* 📱 REGISTER PWA SERVICE WORKER */
+function registerPWA() {
+  if ('serviceWorker' in navigator) {
+    window.addEventListener('load', () => {
+      navigator.serviceWorker.register('sw.js')
+        .then(() => {})
+        .catch(() => {});
+    });
+  }
+}
+
+/* 🌐 i18n MULTI-LANGUAGE SWITCHER (EN / GU / HI) */
+const I18N_DICTIONARY = {
+  en: {
+    home: 'Home', browse: 'Browse', exchange: 'Exchange', donate: 'Donate', about: 'About', contact: 'Contact',
+    welcome: 'Bridge Books. Build Minds.', upload: 'Upload Book', login: 'Login', register: 'Get Started',
+    verified: 'Verified Student'
+  },
+  gu: {
+    home: 'હોમ', browse: 'બ્રાઉઝ કરો', exchange: 'એક્સચેન્જ', donate: 'દાન કરો', about: 'અમારા વિશે', contact: 'સંપર્ક',
+    welcome: 'પુસ્તકો જોડો. મન બનાવો.', upload: 'અપલોડ કરો', login: 'લોગિન', register: 'શરૂ કરો',
+    verified: 'પ્રમાણિત વિદ્યાર્થી'
+  },
+  hi: {
+    home: 'होम', browse: 'ब्राउज़ करें', exchange: 'एक्सचेंज', donate: 'दान करें', about: 'हमारे बारे में', contact: 'संपर्क',
+    welcome: 'किताबें जोड़ें। विचार बनाएं।', upload: 'अपलोड करें', login: 'लॉगिन', register: 'शुरू करें',
+    verified: 'सत्यापित छात्र'
+  }
+};
+
+function initLanguageSwitcher() {
+  const currentLang = localStorage.getItem('bb_user_lang') || 'en';
+  applyLanguageTranslations(currentLang);
+
+  document.querySelectorAll('.lang-select-btn').forEach(btn => {
+    btn.addEventListener('click', (e) => {
+      e.stopPropagation();
+      const nextLang = currentLang === 'en' ? 'gu' : currentLang === 'gu' ? 'hi' : 'en';
+      localStorage.setItem('bb_user_lang', nextLang);
+      applyLanguageTranslations(nextLang);
+      showToast(`Language set to ${nextLang.toUpperCase()}`, 'info');
+      setTimeout(() => window.location.reload(), 500);
+    });
+  });
+}
+
+function applyLanguageTranslations(lang) {
+  const dict = I18N_DICTIONARY[lang] || I18N_DICTIONARY.en;
+  document.querySelectorAll('[data-i18n]').forEach(el => {
+    const key = el.dataset.i18n;
+    if (dict[key]) el.textContent = dict[key];
+  });
+}
 
 /* ==========================================================================
    GLOBAL COMPONENTS
@@ -1075,6 +1131,7 @@ async function initDashboardPage() {
   }
 
   if (greeting) greeting.textContent = `Welcome back, ${user.name}! 👋`;
+  renderSwapMatchmakerBanner('dashMatchmakerContainer');
 
   const allBooks = await window.BookAPI.getBooks();
   const myBooks = allBooks.filter(b => b.seller?.id === user.id || b.seller?.email === user.email);
@@ -2108,27 +2165,82 @@ function initRegisterPage() {
   });
 }
 
-/* 🛡️ ADMIN */
+/* 🛡️ ADMIN CONTROLLER WITH CHARTS & CSV EXPORT */
 async function initAdminPage() {
   const tbody = document.getElementById('adminBooksTableBody');
   const addBtn = document.getElementById('btnAdminAddBook');
+  const adminAddModal = document.getElementById('adminAddBookModal');
+  const closeAdminModal = document.getElementById('closeAdminAddBookModal');
+  const adminAddForm = document.getElementById('adminAddBookForm');
+  const searchInput = document.getElementById('adminBookSearch');
+  const csvBtn = document.getElementById('btnExportCsv');
 
-  if (addBtn) {
-    addBtn.addEventListener('click', async () => {
-      const title = prompt('Enter Book Title:');
-      if (!title) return;
-      const author = prompt('Author Name:') || 'Faculty';
-      const branch = prompt('Department (CE/IT/EE/ME/Civil):') || 'CE';
+  // Admin tab switching
+  const adminTabBtns = document.querySelectorAll('.admin-tab-btn');
+  const adminContentTabs = document.querySelectorAll('.admin-content-tab');
 
-      await window.BookAPI.addBook({ title, author, branch, category: 'official', price: 0 });
-      showToast(`"${title}" added to catalog`, 'success');
-      fetchAdmin();
+  adminTabBtns.forEach(btn => {
+    btn.addEventListener('click', () => {
+      const tab = btn.dataset.adminTab;
+      adminTabBtns.forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+      adminContentTabs.forEach(t => t.classList.remove('active'));
+      document.getElementById(`adminTab-${tab}`)?.classList.add('active');
+      if (tab === 'users') fetchAdminUsers();
     });
-  }
+  });
+
+  // Modal handlers
+  addBtn?.addEventListener('click', () => adminAddModal?.classList.add('active'));
+  closeAdminModal?.addEventListener('click', () => adminAddModal?.classList.remove('active'));
+  adminAddModal?.addEventListener('click', (e) => { if (e.target === adminAddModal) adminAddModal.classList.remove('active'); });
+
+  // Add Book Form
+  adminAddForm?.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const submitBtn = adminAddForm.querySelector('[type="submit"]');
+    submitBtn.classList.add('btn-loading');
+
+    const bookData = {
+      title: document.getElementById('adminBookTitle').value.trim(),
+      author: document.getElementById('adminBookAuthor').value.trim(),
+      branch: document.getElementById('adminBookBranch').value,
+      semester: parseInt(document.getElementById('adminBookSemester').value) || 1,
+      gtuCode: document.getElementById('adminBookGtuCode').value.trim(),
+      condition: document.getElementById('adminBookCondition').value,
+      price: parseFloat(document.getElementById('adminBookPrice').value) || 0,
+      description: document.getElementById('adminBookDesc').value.trim(),
+      mode: document.getElementById('adminBookMode').value,
+      category: 'official'
+    };
+
+    await window.BookAPI.addBook(bookData);
+    submitBtn.classList.remove('btn-loading');
+    showToast(`"${bookData.title}" added to catalog`, 'success');
+    adminAddModal.classList.remove('active');
+    adminAddForm.reset();
+    fetchAdmin();
+  });
+
+  // CSV Export
+  csvBtn?.addEventListener('click', exportAdminDataCSV);
+
+  // Search filter
+  searchInput?.addEventListener('input', () => {
+    const query = searchInput.value.toLowerCase().trim();
+    document.querySelectorAll('#adminBooksTableBody tr').forEach(row => {
+      row.style.display = row.textContent.toLowerCase().includes(query) ? '' : 'none';
+    });
+  });
 
   async function fetchAdmin() {
     const stats = await window.BookAPI.getAdminStats();
-    const els = { adminStatUsers: stats.totalUsers, adminStatBooks: stats.totalListings, adminStatSwaps: stats.activeSwaps || 0, adminStatDonations: stats.freeDonations || 0 };
+    const els = {
+      adminStatUsers: stats.totalUsers,
+      adminStatBooks: stats.totalListings,
+      adminStatSwaps: stats.activeSwaps || 0,
+      adminStatDonations: stats.freeDonations || 0
+    };
     Object.entries(els).forEach(([id, val]) => {
       const el = document.getElementById(id);
       if (el) { el.dataset.count = val; el.textContent = val.toLocaleString('en-IN'); }
@@ -2136,32 +2248,160 @@ async function initAdminPage() {
 
     if (!tbody) return;
     const books = await window.BookAPI.getBooks();
-    tbody.innerHTML = books.map((b, i) => `
+    tbody.innerHTML = books.map(b => `
       <tr>
         <td><span style="color: var(--color-primary); font-weight: 600;">${b.gtuCode || b.id?.substring(0, 12) || 'N/A'}</span></td>
-        <td><strong>${b.title}</strong></td>
+        <td><strong>${b.title}</strong><br><span style="font-size:12px;color:var(--color-gray);">${b.author || ''}</span></td>
         <td><span class="badge badge-primary">${b.branch || 'CE'}</span></td>
-        <td>${b.price > 0 ? '₹' + b.price : 'Free / Exchange'}</td>
-        <td><span class="badge badge-success">Active</span></td>
+        <td>${b.price > 0 ? '&#8377;' + b.price : 'Free / Exchange'}</td>
+        <td><span class="book-status-badge ${(b.status||'available').toLowerCase()}">${b.status || 'Available'}</span></td>
         <td style="text-align: right;">
           <button onclick="handleDeleteAdminBook('${b.id}')" class="btn btn-danger btn-sm" style="height: 32px; padding: 0 12px; font-size: 12px;">Delete</button>
         </td>
       </tr>
-    `).join('');
+    `).join('') || '<tr><td colspan="6" style="text-align:center;color:var(--color-gray);padding:24px;">No books found.</td></tr>';
+
+    initAdminCharts(books);
+  }
+
+  async function fetchAdminUsers() {
+    const usersTbody = document.getElementById('adminUsersTableBody');
+    if (!usersTbody) return;
+    const users = await window.BookAPI.getAllUsers();
+    const countBadge = document.getElementById('adminUserCount');
+    if (countBadge) countBadge.textContent = `${users.length} Total`;
+
+    usersTbody.innerHTML = users.map(u => `
+      <tr>
+        <td>
+          <strong>${u.name}</strong>
+          ${u.isVerified !== false ? '<span class="verified-badge" style="margin-left:6px;"><i class="fa-solid fa-circle-check"></i> Verified</span>' : ''}
+        </td>
+        <td style="font-size:13px;">${u.email}</td>
+        <td><span class="badge badge-primary">${u.branch || 'CE'}</span></td>
+        <td><span class="book-status-badge ${u.role === 'admin' ? 'available' : 'exchanged'}">${u.role || 'student'}</span></td>
+        <td style="font-size:12px;color:var(--color-gray);">${u.enrollment || 'N/A'}</td>
+        <td style="text-align: right;">
+          <button onclick="handleDeleteAdminUser('${u.id}')" class="btn btn-danger btn-sm" style="height:28px;padding:0 10px;font-size:12px;">Remove</button>
+        </td>
+      </tr>
+    `).join('') || '<tr><td colspan="6" style="text-align:center;color:var(--color-gray);padding:24px;">No users found.</td></tr>';
   }
 
   fetchAdmin();
 }
 
-window.handleDeleteAdminBook = async function(id) {
-  if (confirm('Delete this book listing?')) {
-    await window.BookAPI.deleteBook(id);
-    showToast('Listing removed', 'success');
-    initAdminPage();
-  }
-};
+/* 📊 CHART.JS ANALYTICS INITIALIZER */
+function initAdminCharts(books) {
+  if (typeof Chart === 'undefined') return;
 
-/* 📊 DASHBOARD */
-async function initDashboardPage() {
-  // Placeholder for user dashboard
+  const branchCtx = document.getElementById('branchChartCanvas')?.getContext('2d');
+  const typeCtx = document.getElementById('typeChartCanvas')?.getContext('2d');
+
+  if (branchCtx) {
+    const counts = { CE: 0, IT: 0, EE: 0, ME: 0, Civil: 0, IC: 0 };
+    books.forEach(b => {
+      const br = b.branch || 'CE';
+      if (counts[br] !== undefined) counts[br]++;
+      else counts.CE++;
+    });
+
+    new Chart(branchCtx, {
+      type: 'doughnut',
+      data: {
+        labels: Object.keys(counts),
+        datasets: [{
+          data: Object.values(counts),
+          backgroundColor: ['#3E6B3A', '#8B5E3C', '#2563EB', '#F59E0B', '#16A34A', '#7c3aed']
+        }]
+      },
+      options: { responsive: true, plugins: { legend: { position: 'bottom' } } }
+    });
+  }
+
+  if (typeCtx) {
+    const modes = { sell: 0, exchange: 0, donate: 0 };
+    books.forEach(b => {
+      const m = b.mode || 'sell';
+      if (modes[m] !== undefined) modes[m]++;
+      else modes.sell++;
+    });
+
+    new Chart(typeCtx, {
+      type: 'bar',
+      data: {
+        labels: ['For Sale', 'For Exchange', 'Free Donation'],
+        datasets: [{
+          label: 'Book Count',
+          data: [modes.sell, modes.exchange, modes.donate],
+          backgroundColor: ['#3E6B3A', '#2563EB', '#16A34A']
+        }]
+      },
+      options: { responsive: true, plugins: { legend: { display: false } }, scales: { y: { beginAtZero: true } } }
+    });
+  }
 }
+
+/* 📥 CSV DATA EXPORTER */
+async function exportAdminDataCSV() {
+  const books = await window.BookAPI.getBooks();
+  if (!books || books.length === 0) {
+    showToast('No books data to export', 'warning');
+    return;
+  }
+
+  let csvContent = 'data:text/csv;charset=utf-8,ID,Title,Author,Branch,Semester,Price,Mode,Status,Seller\n';
+  books.forEach(b => {
+    const row = [
+      `"${b.id}"`,
+      `"${(b.title || '').replace(/"/g, '""')}"`,
+      `"${(b.author || '').replace(/"/g, '""')}"`,
+      `"${b.branch || ''}"`,
+      `"${b.semester || 1}"`,
+      `"${b.price || 0}"`,
+      `"${b.mode || 'sell'}"`,
+      `"${b.status || 'Available'}"`,
+      `"${(b.seller?.name || '').replace(/"/g, '""')}"`
+    ].join(',');
+    csvContent += row + '\n';
+  });
+
+  const encodedUri = encodeURI(csvContent);
+  const link = document.createElement('a');
+  link.setAttribute('href', encodedUri);
+  link.setAttribute('download', `bookbridge_catalog_export_${Date.now()}.csv`);
+  document.body.appendChild(link);
+  link.click();
+  document.body.removeChild(link);
+  showToast('Catalog exported to CSV successfully!', 'success');
+}
+
+/* ⚡ SWAP MATCHMAKER BANNER RENDERER */
+async function renderSwapMatchmakerBanner(containerId) {
+  const container = document.getElementById(containerId);
+  if (!container) return;
+
+  const user = await window.BookAPI.getCurrentUser();
+  if (!user) return;
+
+  const allBooks = await window.BookAPI.getBooks();
+  const exchangeBooks = allBooks.filter(b => b.mode === 'exchange' && b.seller?.email !== user.email);
+
+  if (exchangeBooks.length === 0) return;
+
+  const matchedBook = exchangeBooks[0];
+  const sellerName = matchedBook.seller?.name || 'A Student';
+
+  container.innerHTML = `
+    <div class="matchmaker-banner animate-on-scroll">
+      <div class="matchmaker-info">
+        <h3>⚡ Perfect Swap Match Found!</h3>
+        <p><strong>${sellerName}</strong> has listed <strong>"${matchedBook.title}"</strong> (${matchedBook.branch} Sem ${matchedBook.semester || 5}). Tap to propose a trade!</p>
+      </div>
+      <button onclick="handleBookAction('${matchedBook.id}', 'Propose Swap')" class="matchmaker-btn">
+        <i class="fa-solid fa-arrows-rotate"></i> Swap Now
+      </button>
+    </div>
+  `;
+}
+

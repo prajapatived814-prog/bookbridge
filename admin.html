@@ -7,6 +7,7 @@
   <meta name="description" content="BookBridge administration panel for managing books, users, and platform analytics.">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
   <link rel="stylesheet" href="style.css">
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 </head>
 <body>
   <!-- ADMIN AUTH GUARD: Redirect to login if not authenticated as admin -->
@@ -104,6 +105,18 @@
           </div>
         </div>
 
+        <!-- CHARTS GRID -->
+        <div class="charts-grid">
+          <div class="chart-card">
+            <h4><i class="fa-solid fa-chart-pie" style="color:var(--color-primary);"></i> Department Distribution</h4>
+            <canvas id="branchChartCanvas" height="180"></canvas>
+          </div>
+          <div class="chart-card">
+            <h4><i class="fa-solid fa-chart-column" style="color:var(--color-info);"></i> Listing Type Breakdown</h4>
+            <canvas id="typeChartCanvas" height="180"></canvas>
+          </div>
+        </div>
+
         <!-- ADMIN TABS -->
         <div class="admin-tabs">
           <button class="admin-tab-btn active" data-admin-tab="books"><i class="fa-solid fa-book"></i> Books</button>
@@ -115,7 +128,10 @@
           <div class="card" style="padding: 24px;">
             <div class="flex-between" style="margin-bottom: 16px; flex-wrap: wrap; gap: 12px;">
               <h3>Resource Catalog</h3>
-              <button id="btnAdminAddBook" class="btn btn-primary btn-sm"><i class="fa-solid fa-plus"></i> Add Book</button>
+              <div style="display:flex;gap:8px;">
+                <button id="btnExportCsv" class="btn btn-secondary btn-sm"><i class="fa-solid fa-file-csv"></i> Export CSV</button>
+                <button id="btnAdminAddBook" class="btn btn-primary btn-sm"><i class="fa-solid fa-plus"></i> Add Book</button>
+              </div>
             </div>
             <div class="table-search-bar">
               <input type="text" id="adminBookSearch" placeholder="Search books by title, author, code...">
